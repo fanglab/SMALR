@@ -1,0 +1,4 @@
+native_cmph5: nat_shortlib.cmp.h5
+fastq:        J99_nat_CCS.fastq
+wga_cmph5:    wga_shortlib.cmp.h5
+ref:          Hpylori_J99.fasta

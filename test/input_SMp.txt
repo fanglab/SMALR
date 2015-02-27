@@ -1,0 +1,4 @@
+native_cmph5: nat_longlib.cmp.h5
+fastq:        NONE
+wga_cmph5:    wga_longlib.cmp.h5
+ref:          HP_J99_HGAP2.fasta
