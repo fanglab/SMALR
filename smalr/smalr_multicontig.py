@@ -57,7 +57,7 @@ class Smalr_multicontig_runner:
 			runner.run()
 			os.chdir("../")
 
-# def main():
-if __name__ == "__main__":
+def main():
+# if __name__ == "__main__":
 	app = Smalr_multicontig_runner()
 	sys.exit( app.run() )

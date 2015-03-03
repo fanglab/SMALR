@@ -153,7 +153,7 @@ def read_in_motif_sites( motifSites_fn ):
 		sites.append(int(float(line.strip())))
 	return sites
 
-def read_alignments_file( alignments_flat_fn, chunk_id, contig_name, prefix, lines_range, leftAnchor, rightAnchor ):
+def read_alignments_file( alignments_flat_fn, chunk_id, contig_id, prefix, lines_range, leftAnchor, rightAnchor ):
 	"""
 	Once the alignments have been extracted and written to the alignments text files,
 	go through and compile the per-molecule IPD information.
@@ -175,7 +175,7 @@ def read_alignments_file( alignments_flat_fn, chunk_id, contig_name, prefix, lin
 	mols = {}
 	for i,alignments in enumerate(mol_alignments.values()):
 		mol = molecule( alignments, prefix, leftAnchor, rightAnchor )
-		if mol.contig == contig_name:
+		if mol.contig == contig_id:
 			mols[mol.mol_id] = mol
 	return mols
 
@@ -258,7 +258,7 @@ class wga_molecules_processor:
 				  alignments_flat_fn, \
 				  chunk_id,           \
 				  prefix,             \
-				  contig_name,         \
+				  contig_id,        \
 				  ref_size,           \
 				  sites_pos,          \
 				  sites_neg,          \
@@ -269,9 +269,10 @@ class wga_molecules_processor:
 		"""
 		"""
 		self.alignments_flat_fn = alignments_flat_fn
+		self.contig_id          = contig_id
 		self.chunk_id           = chunk_id
 		self.prefix             = prefix
-		self.contig_name         = contig_name
+		self.contig_id        = contig_id
 		self.ref_size           = ref_size
 		self.sites_pos_fn       = sites_pos
 		self.sites_neg_fn       = sites_neg
@@ -307,7 +308,7 @@ class wga_molecules_processor:
 			logging.debug("Process %s: reading alignments..." % self.chunk_id)
 			self.mols = read_alignments_file( self.alignments_flat_fn, \
 											  self.chunk_id,           \
-											  self.contig_name,         \
+											  self.contig_id,         \
 											  self.prefix,             \
 											  lines_range,             \
 											  self.leftAnchor,         \
@@ -339,7 +340,8 @@ class wga_molecules_processor:
 																					 nMols_loaded))
 			i            += 1
 			pct_through_file = float(min(end, nlines)) / nlines * 100
-			logging.info("Process %s: %.1f%% of WGA alignments loaded (%s mols)." % (self.chunk_id,    \
+			logging.info("%s - Process %s: %.1f%% of WGA alignments loaded (%s mols)." % (self.contig_id, \
+																					 self.chunk_id,    \
 																					 pct_through_file, \
 																					 nMols_loaded))
 
@@ -379,7 +381,7 @@ class native_molecules_processor:
 				  alignments_flat_fn,     \
 				  chunk_id,               \
 				  prefix,                 \
-				  contig_name,             \
+				  contig_id,             \
 				  nativeCovThresh,        \
 				  fastq,                  \
 				  ref,                    \
@@ -405,7 +407,7 @@ class native_molecules_processor:
 		self.alignments_flat_fn      = alignments_flat_fn
 		self.chunk_id                = chunk_id
 		self.prefix                  = prefix
-		self.contig_name              = contig_name
+		self.contig_id              = contig_id
 		self.nativeCovThresh         = nativeCovThresh
 		self.fastq                   = fastq
 		self.ref                     = ref
@@ -454,7 +456,7 @@ class native_molecules_processor:
 			# Generate dictionary of all the molecules (self.mols: key = mol_id, value = <molecule_object>)
 			self.mols = read_alignments_file( self.alignments_flat_fn, \
 											  self.chunk_id, \
-											  self.contig_name, \
+											  self.contig_id, \
 											  self.prefix, \
 											  lines_range, \
 											  self.leftAnchor, \
@@ -485,7 +487,6 @@ class native_molecules_processor:
 													self.chunk_id)
 					# Output the called CCS read-level variants/errors to a chunk file
 					for mol in self.mols.values():
-						# logging.info("molecule %s: MD = %s, CIGAR = %s, aln_start = %s, aln_end = %s, first_pos = %s, last_pos = %s" % (mol.mol_id, mol.MD, mol.CIGAR, mol.align_start, mol.align_end, mol.first_pos, mol.last_pos))
 						vars_str = ",".join(map(lambda x: str(x), mol.var_no_sc))
 						self.var_f.write("%s %s\n" % (mol.mol_id, vars_str))
 
@@ -551,10 +552,15 @@ class native_molecules_processor:
 				shutil.rmtree(self.chunk_dirname)
 
 				nMols_loaded += len(self.mols.values())
-				logging.debug("Process %s (chunk %s): loaded and analyzed %s molecules so far." % (self.chunk_id, i, nMols_loaded))
+				logging.debug("Process %s (chunk %s): loaded and analyzed %s molecules so far." % (self.chunk_id, \
+																								   i, \
+																								   nMols_loaded))
 
 				pct_through_file = float(min(end, nlines)) / nlines * 100
-				logging.info("Process %s: %.1f%% of native alignments loaded. %s mols analyzed." % (self.chunk_id, pct_through_file, nMols_loaded))
+				logging.info("%s - Process %s: %.1f%% of native alignments loaded. %s mols analyzed." % (self.contig_id, \
+																										 self.chunk_id,  \
+																										 pct_through_file, \
+																										 nMols_loaded))
 
 			start = end
 			if start == nlines or nlines < end:
