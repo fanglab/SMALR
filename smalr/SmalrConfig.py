@@ -55,7 +55,7 @@ class RunnerConfig:
 		parser.add_option( "--procs", type="int", help="Number of subprocesses to spawn [8]" )
 		parser.add_option( "--natProcs", type="int", help="Number of subprocesses to spawn for native molecule analysis [procs]" )
 		parser.add_option( "--chunkSize", type="int", help="Number of molecules to process at a time [500]" )
-		parser.add_option( "--contig_name", type="str", help="Name of contig in reference to look at [ref000001]" )
+		#parser.add_option( "--contig_name", type="str", help="Name of contig in reference to look at [ref000001]" )
 		parser.add_option( "--SMsn", action="store_true", help="For short-library single-nucleotide detection. [False]" )
 		parser.add_option( "--SMp", action="store_true", help="For long-library epigenetic phasing (pool IPDs from each subread). [False]" )
 		parser.add_option( "--nat_lib", type="str", help="Either 'short' or 'long' [short]" )
@@ -85,7 +85,7 @@ class RunnerConfig:
 							 minMapQV=240,                     \
 							 procs=8,                          \
 							 natProcs=None,                    \
-							 contig_name="ref000001",          \
+							 #contig_name="ref000001",          \
 							 SMsn=False,                       \
 							 SMp=False,                        \
 							 wga_lib="short",                  \

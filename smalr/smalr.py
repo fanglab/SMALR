@@ -169,13 +169,12 @@ class SmalrRunner():
 		file into chunks that we load into memory. Once loaded as subread/alignment objects, we'll
 		process them and write to the appropriate IPD csv file.
 		"""
-		h5file = h5py.File(cmph5)
-
+		h5file = h5py.File(cmph5, 'r')
 		logging.debug("Getting all the reference contigs...")
 		contigs = self.get_reference_contigs( h5file )
-
 		logging.debug("Getting all the movie names and movie IDs...")
 		movie_name_ID_map = self.get_movie_name_ID_map( h5file )
+		h5file.close()
 		
 		# Too many chunks causes some I/O problems when reading from the cmp.h5
 		nchunks         = min(self.Config.opts.procs, 1)
@@ -393,7 +392,7 @@ class SmalrRunner():
 			if name == self.Config.opts.contig_name:
 				f.write(">%s\n" % name)
 				f.write("%s" % seq)
-		f.close
+		f.close()
 
 		caller_script    = os.path.join(os.path.dirname(__file__),'R/call_motifFinder.r')
 		findMotif_script = os.path.join(os.path.dirname(__file__),'R/motifFinder.r')
@@ -405,6 +404,7 @@ class SmalrRunner():
 			for entry in stdOutErr:
 				print entry
 			raise Exception("Failed command: %s" % Rscript_CMD)
+		
 		self.sites_pos = stdOutErr[0].split("\n")[0].split(" ")[1][1:-1]
 		self.sites_neg = stdOutErr[0].split("\n")[1].split(" ")[1][1:-1]
 
