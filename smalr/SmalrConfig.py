@@ -3,12 +3,8 @@ import optparse
 import logging
 
 class RunnerConfig:
-	def __init__( self, i, contig_info, input_file ):
-		self.input_file  = input_file
-		self.contig_info = contig_info
-		self.i           = i
+	def __init__( self ):
 		self.__parseArgs( )
-		self.__initLog( )
 
 	def __parseArgs( self ):
 		"""Handle command line argument parsing"""
@@ -55,7 +51,6 @@ class RunnerConfig:
 		parser.add_option( "--procs", type="int", help="Number of subprocesses to spawn [8]" )
 		parser.add_option( "--natProcs", type="int", help="Number of subprocesses to spawn for native molecule analysis [procs]" )
 		parser.add_option( "--chunkSize", type="int", help="Number of molecules to process at a time [500]" )
-		#parser.add_option( "--contig_name", type="str", help="Name of contig in reference to look at [ref000001]" )
 		parser.add_option( "--SMsn", action="store_true", help="For short-library single-nucleotide detection. [False]" )
 		parser.add_option( "--SMp", action="store_true", help="For long-library epigenetic phasing (pool IPDs from each subread). [False]" )
 		parser.add_option( "--nat_lib", type="str", help="Either 'short' or 'long' [short]" )
@@ -85,14 +80,13 @@ class RunnerConfig:
 							 minMapQV=240,                     \
 							 procs=8,                          \
 							 natProcs=None,                    \
-							 #contig_name="ref000001",          \
 							 SMsn=False,                       \
 							 SMp=False,                        \
 							 wga_lib="short",                  \
 							 nat_lib="short",                  \
 							 leftAnchor=1,                     \
 							 rightAnchor=1,                    \
-							 write_vars=None,                 \
+							 write_vars=None,                  \
 							 chunkSize=500)
 
 		self.opts, args = parser.parse_args( )
@@ -117,6 +111,8 @@ class RunnerConfig:
 
 		if len(args) != 1:
 			parser.error( "Expected 1 argument." )
+		else:
+			self.input_file = os.path.abspath(args[0])
 
 		if self.opts.wga_aligns_flat != None and not os.path.exists(self.opts.wga_aligns_flat):
 			raise Exception("%s file not found!" % self.opts.wga_aligns_flat)
@@ -124,7 +120,7 @@ class RunnerConfig:
 			raise Exception("%s file not found!" % self.opts.nat_aligns_flat)
 
 		contig_dir = os.getcwd()
-		orig_dir   = os.sep.join(self.input_file.split(os.sep)[:-1])
+		orig_dir   = os.path.dirname(self.input_file)
 		os.chdir(orig_dir)
 		for line in open(self.input_file).xreadlines():
 			if line.split(":")[0].strip() == "fastq":
@@ -138,42 +134,3 @@ class RunnerConfig:
 			else:
 				raise Exception("Unexpected field in the input file!\n%s" % line)
 		os.chdir(contig_dir)
-
-	def __initLog( self ):
-		"""Sets up logging based on command line arguments. Allows for three levels of logging:
-		logging.error( ): always emitted
-		logging.info( ) : emitted with --info or --debug
-		logging.debug( ): only with --debug"""
-
-		if os.path.exists(self.opts.logFile):
-			os.remove(self.opts.logFile)
-
-		logLevel = logging.DEBUG if self.opts.debug \
-					else logging.INFO if self.opts.info \
-					else logging.ERROR
-
-		self.logger = logging.getLogger()
-		self.logger.setLevel(logLevel)
-
-		# create file handler which logs even debug messages
-		fh = logging.FileHandler(self.opts.logFile)
-		fh.setLevel(logLevel)
-		
-		# create console handler with a higher log level
-		ch = logging.StreamHandler()
-		ch.setLevel(logLevel)
-		
-		# create formatter and add it to the handlers
-		logFormat = "%(asctime)s [%(levelname)s] %(message)s"
-		formatter = logging.Formatter(logFormat)
-		ch.setFormatter(formatter)
-		fh.setFormatter(formatter)
-		
-		# add the handlers to logger
-		if self.i == 0:
-			self.logger.addHandler(ch)
-		self.logger.addHandler(fh)
-		logging.info("")
-		logging.info("====================================")
-		logging.info("Analyzing contig %s (%s)" % (self.contig_info[1], self.contig_info[0]))
-		logging.info("====================================")

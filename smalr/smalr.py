@@ -93,47 +93,18 @@ class Consumer(multiprocessing.Process):
 		return
 
 class SmalrRunner():
-	def __init__ ( self, i, contig_info, abs_input_file ):
+	def __init__ ( self, i, contig_info, abs_input_file, Config ):
 		"""
 		Parse the options and arguments, then instantiate the logger. 
 		"""
-		self.Config                  = SmalrConfig.RunnerConfig( i, contig_info, abs_input_file )
+		self.i                       = i
+		self.Config                  = Config
 		self.Config.opts.contig_name = contig_info[0]
 		self.Config.opts.contig_id   = contig_info[1]
+		self.__initLog( )
 		
-		logging.info("%s - logFile:                 %s" % (self.Config.opts.contig_id, self.Config.opts.logFile))
-		logging.info("%s - debug:                   %s" % (self.Config.opts.contig_id, self.Config.opts.debug))
-		logging.info("%s - info:                    %s" % (self.Config.opts.contig_id, self.Config.opts.info))
-		logging.info("%s - motif:                   %s" % (self.Config.opts.contig_id, self.Config.opts.motif))
-		logging.info("%s - mod_pos:                 %s" % (self.Config.opts.contig_id, self.Config.opts.mod_pos))
-		logging.info("%s - procs:                   %s" % (self.Config.opts.contig_id, self.Config.opts.procs))
-		logging.info("%s - natProcs:                %s" % (self.Config.opts.contig_id, self.Config.opts.natProcs))
-		logging.info("%s - chunkSize:               %s" % (self.Config.opts.contig_id, self.Config.opts.chunkSize))
-		logging.info("%s - profile:                 %s" % (self.Config.opts.contig_id, self.Config.opts.profile))
-		logging.info("%s - out:                     %s" % (self.Config.opts.contig_id, self.Config.opts.out))
-		logging.info("%s - nativeCovThresh:         %s" % (self.Config.opts.contig_id, self.Config.opts.nativeCovThresh))
-		logging.info("%s - wgaCovThresh:            %s" % (self.Config.opts.contig_id, self.Config.opts.wgaCovThresh))
-		logging.info("%s - align:                   %s" % (self.Config.opts.contig_id, self.Config.opts.align))
-		logging.info("%s - firstBasesToSkip:        %s" % (self.Config.opts.contig_id, self.Config.opts.firstBasesToSkip))
-		logging.info("%s - lastBasesToSkip:         %s" % (self.Config.opts.contig_id, self.Config.opts.lastBasesToSkip))
-		logging.info("%s - noCompare:               %s" % (self.Config.opts.contig_id, self.Config.opts.noCompare))
-		logging.info("%s - nat_aligns_flat:         %s" % (self.Config.opts.contig_id, self.Config.opts.nat_aligns_flat))
-		logging.info("%s - wga_aligns_flat:         %s" % (self.Config.opts.contig_id, self.Config.opts.wga_aligns_flat))
-		logging.info("%s - extractAlignmentOnly:    %s" % (self.Config.opts.contig_id, self.Config.opts.extractAlignmentOnly))
-		logging.info("%s - upstreamSkip:            %s" % (self.Config.opts.contig_id, self.Config.opts.upstreamSkip))
-		logging.info("%s - downstreamSkip:          %s" % (self.Config.opts.contig_id, self.Config.opts.downstreamSkip))
-		logging.info("%s - minSubreadLen:           %s" % (self.Config.opts.contig_id, self.Config.opts.minSubreadLen))
-		logging.info("%s - minAcc:                  %s" % (self.Config.opts.contig_id, self.Config.opts.minAcc))
-		logging.info("%s - minMapQV:                %s" % (self.Config.opts.contig_id, self.Config.opts.minMapQV))
 		logging.info("%s - contig_id:               %s" % (self.Config.opts.contig_id, self.Config.opts.contig_id))
 		logging.info("%s - contig_name:             %s" % (self.Config.opts.contig_id, self.Config.opts.contig_name))
-		logging.info("%s - SMsn:                    %s" % (self.Config.opts.contig_id, self.Config.opts.SMsn))
-		logging.info("%s - SMp:                     %s" % (self.Config.opts.contig_id, self.Config.opts.SMp))
-		logging.info("%s - wga_lib:                 %s" % (self.Config.opts.contig_id, self.Config.opts.wga_lib))
-		logging.info("%s - nat_lib:                 %s" % (self.Config.opts.contig_id, self.Config.opts.nat_lib))
-		logging.info("%s - leftAnchor:              %s" % (self.Config.opts.contig_id, self.Config.opts.leftAnchor))
-		logging.info("%s - rightAnchor:             %s" % (self.Config.opts.contig_id, self.Config.opts.rightAnchor))
-		logging.info("%s - write_vars:              %s" % (self.Config.opts.contig_id, self.Config.opts.write_vars))
 
 		for i,entry in enumerate(fasta_iter(self.Config.ref)):
 			self.ref_name = entry[0]
@@ -141,6 +112,45 @@ class SmalrRunner():
 				self.ref_size = len(entry[1])
 			else:
 				pass
+
+	def __initLog( self ):
+		"""Sets up logging based on command line arguments. Allows for three levels of logging:
+		logging.error( ): always emitted
+		logging.info( ) : emitted with --info or --debug
+		logging.debug( ): only with --debug"""
+
+		if os.path.exists(self.Config.opts.logFile):
+			os.remove(self.Config.opts.logFile)
+
+		logLevel = logging.DEBUG if self.Config.opts.debug \
+					else logging.INFO if self.Config.opts.info \
+					else logging.ERROR
+
+		self.logger = logging.getLogger()
+		self.logger.setLevel(logLevel)
+
+		# create file handler which logs even debug messages
+		fh = logging.FileHandler(self.Config.opts.logFile)
+		fh.setLevel(logLevel)
+		
+		# create console handler with a higher log level
+		ch = logging.StreamHandler()
+		ch.setLevel(logLevel)
+		
+		# create formatter and add it to the handlers
+		logFormat = "%(asctime)s [%(levelname)s] %(message)s"
+		formatter = logging.Formatter(logFormat, datefmt='%H:%M:%S')
+		ch.setFormatter(formatter)
+		fh.setFormatter(formatter)
+		
+		# add the handlers to logger
+		if self.i == 0:
+			self.logger.addHandler(ch)
+		self.logger.addHandler(fh)
+		logging.info("")
+		logging.info("====================================")
+		logging.info("Analyzing contig %s (%s)" % (self.Config.opts.contig_id, self.Config.opts.contig_name))
+		logging.info("====================================")
 
 	def get_reference_contigs( self, h5file ):
 		"""

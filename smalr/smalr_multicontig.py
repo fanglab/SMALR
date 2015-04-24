@@ -4,7 +4,7 @@ import logging
 from pbcore.io.align.CmpH5IO import *
 from itertools import groupby
 from smalr import SmalrRunner
-
+import SmalrConfig
 
 def fasta_iter(fasta_name):
 	"""
@@ -26,10 +26,7 @@ class Smalr_multicontig_runner:
 		"""
 
 		"""
-		self.input_file = sys.argv[-1]
-		for line in open(self.input_file).xreadlines():
-			if line.split(":")[0].strip() == "native_cmph5":
-				self.native_cmph5 = line.split(":")[1].strip()
+		self.Config  = SmalrConfig.RunnerConfig( )
 
 	def get_reference_contigs( self, cmph5 ):
 		"""
@@ -45,19 +42,30 @@ class Smalr_multicontig_runner:
 		"""
 
 		"""
-		nat_contigs  = self.get_reference_contigs(self.native_cmph5)
+		nat_contigs  = self.get_reference_contigs(self.Config.native_cmph5)
 		
-		abs_input_fn = os.path.abspath(self.input_file)
+		print "Preparing to iterate over all contigs in %s" % self.Config.native_cmph5
+		for nat_contig in nat_contigs:
+			print "	- %s (%s)" % (nat_contig[1], nat_contig[0])
+
+		if self.Config.opts.SMsn:
+			protocol = "SMsn"
+		elif self.Config.opts.SMp:
+			protocol = "SMp"
+		else:
+			raise Exception("Unknown pipeline protocol! Use --SMsn or --SMp!")
+
+		abs_input_fn = os.path.abspath(self.Config.input_file)
 		for i,nat_contig in enumerate(nat_contigs):
-			if os.path.exists(nat_contig[1]):
-				shutil.rmtree(nat_contig[1])
-			os.mkdir(nat_contig[1])
-			os.chdir(nat_contig[1])
-			runner = SmalrRunner( i, nat_contig, abs_input_fn )
+			dir_name = "%s_%s" % (nat_contig[1], protocol)
+			if os.path.exists(dir_name):
+				shutil.rmtree(dir_name)
+			os.mkdir(dir_name)
+			os.chdir(dir_name)
+			runner = SmalrRunner( i, nat_contig, abs_input_fn, self.Config )
 			runner.run()
 			os.chdir("../")
 
 def main():
-# if __name__ == "__main__":
 	app = Smalr_multicontig_runner()
 	sys.exit( app.run() )
