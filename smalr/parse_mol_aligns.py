@@ -673,10 +673,6 @@ class native_molecules_processor:
 			plus_off_limits  += range(var-self.upstreamSkip,   var+self.downstreamSkip+1)
 			minus_off_limits += range(var-self.downstreamSkip, var+self.upstreamSkip+1)
 
-		# # Only look at first 'len_to_use' number of position in the subread
-		# plus_off_limits  += range(self.first_pos + self.len_to_use + 1, mol.last_pos  + 1)
-		# minus_off_limits += range(mol.last_pos  - self.len_to_use - 1, self.first_pos - 1, -1)
-
 		# Skip the first 'first_skip' positions
 		plus_off_limits  += range(mol.first_pos, mol.first_pos + self.first_skip + 1)
 		minus_off_limits += range(mol.last_pos,  mol.last_pos  - self.first_skip - 1, -1)

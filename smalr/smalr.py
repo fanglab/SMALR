@@ -258,7 +258,7 @@ class SmalrRunner():
 		logging.info("%s - Loading %s..." % (self.Config.opts.contig_id, cmph5))
 		reader           = CmpH5Reader(cmph5)
 		alignments_list  = [r for r in reader]
-		logging.info("%s - Done." % self.Config.opts.contig_id)
+		logging.debug("%s - Done." % self.Config.opts.contig_id)
 		if (prefix == "nat_" and self.Config.opts.nat_aligns_flat == None) or (prefix == "wga_" and self.Config.opts.wga_aligns_flat == None):
 			chunksize        = int(math.ceil(float( len(alignments_list)/nchunks )))
 			alignment_chunks = list(chunks( alignments_list, chunksize ))
@@ -424,7 +424,7 @@ class SmalrRunner():
 		if prefix == "nat_":
 			logging.info("%s - Separating out file-matched regions of the control IPD values dict..." % self.Config.opts.contig_id)
 			local_control_ipds = self.split_up_control_IPDs( control_ipds, tmp_flat_files )
-			logging.info("%s - Done." % self.Config.opts.contig_id)
+			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 		logging.debug("Creating tasks...")
 		tasks   = multiprocessing.JoinableQueue()
@@ -511,28 +511,28 @@ class SmalrRunner():
 		prefix = "wga_"
 		logging.info("%s - Extracting WGA alignments from %s..." % (self.Config.opts.contig_id, self.Config.wga_cmph5))
 		wga_flat_file, wga_movie_name_ID_map = self.extract_alignments_from_cmph5( self.Config.wga_cmph5, prefix )
-		logging.info("%s - Done." % self.Config.opts.contig_id)
+		logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 		logging.info("%s - Sorting %s..." % (self.Config.opts.contig_id, wga_flat_file))
 		wga_flat_file = self.sort_flat_alignments_file( wga_flat_file )
-		logging.info("%s - Done." % self.Config.opts.contig_id)
+		logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 		if not self.Config.opts.extractAlignmentOnly:
 			logging.info("%s - Splitting %s into %s chunks for multiprocessing..." % (self.Config.opts.contig_id, wga_flat_file, self.Config.opts.procs))
 			wga_tmp_flat_files, split_mols = self.split_flat_file_by_nprocs( wga_flat_file, prefix )
-			logging.info("%s - Done." % self.Config.opts.contig_id)
+			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 			control_ipds    = None
 			chunk_ipdArrays = self.launch_parallel_molecule_loading( wga_tmp_flat_files, prefix, wga_movie_name_ID_map, control_ipds, split_mols )
 
 			logging.info("%s - Combining the %s separate ipdArray dictionaries..." % (self.Config.opts.contig_id, len(chunk_ipdArrays)))
 			control_ipds    = parse_mol_aligns.combine_chunk_ipdArrays( chunk_ipdArrays, self.ref_size )
-			logging.info("%s - Done." % self.Config.opts.contig_id)
+			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 			logging.info("%s - Cleaning up chunked WGA alignment files..." % self.Config.opts.contig_id)
 			for fn in wga_tmp_flat_files:
 				os.remove(fn)
-			logging.info("%s - Done" % self.Config.opts.contig_id)
+			logging.debug("%s - Done" % self.Config.opts.contig_id)
 			
 		##############
 		# Native
@@ -540,16 +540,16 @@ class SmalrRunner():
 		prefix = "nat_"
 		logging.info("%s - Extracting native alignments from %s..." % (self.Config.opts.contig_id, self.Config.native_cmph5))
 		native_flat_file, native_movie_name_ID_map = self.extract_alignments_from_cmph5( self.Config.native_cmph5, prefix )
-		logging.info("%s - Done." % self.Config.opts.contig_id)
+		logging.debug("%s - Done." % self.Config.opts.contig_id)
 		
 		logging.info("%s - Sorting %s..." % (self.Config.opts.contig_id, native_flat_file))
 		native_flat_file = self.sort_flat_alignments_file( native_flat_file )
-		logging.info("%s - Done." % self.Config.opts.contig_id)
+		logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 		if not self.Config.opts.extractAlignmentOnly:
 			logging.info("%s - Splitting %s into %s chunks for multiprocessing..." % (self.Config.opts.contig_id, native_flat_file, self.Config.opts.natProcs))
 			native_tmp_flat_files, split_mols = self.split_flat_file_by_nprocs( native_flat_file, prefix )
-			logging.info("%s - Done." % self.Config.opts.contig_id)
+			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 			if self.Config.opts.align:
 				# Create necessary fasta index for BWA aligner and samtools
@@ -558,27 +558,27 @@ class SmalrRunner():
 				samtools_idx_CMD = "samtools faidx %s" % self.Config.ref
 				run_command( bwa_idx_CMD )
 				run_command( samtools_idx_CMD )
-				logging.info("%s - Done." % self.Config.opts.contig_id)
+				logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 			parallel_output_fns = self.launch_parallel_molecule_loading( native_tmp_flat_files, prefix, native_movie_name_ID_map, control_ipds, split_mols )
 
 			logging.info("%s - Cleaning up chunked native alignment files..." % self.Config.opts.contig_id)
 			for fn in native_tmp_flat_files:
 				os.remove(fn)
-			logging.info("%s - Done." % self.Config.opts.contig_id)
+			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 			logging.info("%s - Combining chunked test output files..." % self.Config.opts.contig_id)
 			out_files_to_cat = [fn for fn in parallel_output_fns if os.path.exists(fn)]
 			head             = "strand\tpos\tscore\tmol\tnat\twga\tN_nat\tN_wga\tsubread_len\n"
 			self.Config.opts.out    = cat_list_of_files( out_files_to_cat, self.Config.opts.out, header=head )
-			logging.info("%s - Done." % self.Config.opts.contig_id)
+			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 			if self.Config.opts.align and self.Config.opts.write_vars:
 				logging.info("%s - Combining chunked molecule-specific variant calls..." % self.Config.opts.contig_id)
 				vars_files_to_cat = glob.glob("vars_*.tmp")
 				head = "mol\tvar_pos\n"
 				self.Config.opts.write_vars = cat_list_of_files(vars_files_to_cat , self.Config.opts.write_vars, header=head )
-				logging.info("%s - Done." % self.Config.opts.contig_id)
+				logging.debug("%s - Done." % self.Config.opts.contig_id)
 			elif self.Config.opts.align:
 				vars_files_to_del = glob.glob("vars_*.tmp")
 				for fn in vars_files_to_del:
@@ -589,12 +589,8 @@ class SmalrRunner():
 				os.remove(fn)
 			for fn in glob.glob("*flat.txt.sorted"):
 				os.remove(fn)
-			logging.info("%s - Done." % self.Config.opts.contig_id)
+			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 def main():
 	app = SmalrRunner()
-	if app.opts.profile:
-		import cProfile
-		cProfile.run( 'app.run()')
-	else:
-		sys.exit( app.run() )
+	sys.exit( app.run() )
