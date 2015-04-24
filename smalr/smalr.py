@@ -83,10 +83,10 @@ class Consumer(multiprocessing.Process):
 			next_task = self.task_queue.get()
 			if next_task is None:
 				# Poison pill means shutdown
-				logging.info("%s - %s: Exiting" % (self.contig_id, proc_name))
+				logging.debug("%s - %s: Exiting" % (self.contig_id, proc_name))
 				self.task_queue.task_done()
 				break
-			logging.info("%s - %s: Starting" % (self.contig_id, proc_name))
+			logging.debug("%s - %s: Starting" % (self.contig_id, proc_name))
 			answer = next_task()
 			self.task_queue.task_done()
 			self.result_queue.put(answer)
