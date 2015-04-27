@@ -1,7 +1,6 @@
 import os,sys,time
 import parse_mol_aligns
 import subprocess
-import optparse
 import logging
 import numpy as np
 from itertools import groupby
@@ -13,10 +12,8 @@ import multiprocessing
 import glob
 import random
 import h5py
-import rpy2
 import copy
 import operator
-import matplotlib.pyplot as plt
 import SmalrConfig
 
 def run_command( CMD ):

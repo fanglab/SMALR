@@ -22,13 +22,11 @@ Installation:
 ############
 1. Create and activate a python virtual environment with virtualenv
    - See http://docs.python-guide.org/en/latest/dev/virtualenvs/
-2. Install package dependencies
-   - numpy >= 1.9.1
-   - h5py >= 2.4.0
-   - pbcore >= 0.9.4
-   - pysam >= 0.8.1
-   - rpy2 >= 2.5.6
-3. Clone SMALR source code from GitHub to your local SMALR repository
+2. Install package dependencies inside your virtual environment
+   - numpy >= 1.9.1 ('pip install numpy')
+   - h5py >= 2.4.0 ('pip install h5py')
+   - pbcore >= 0.9.4 (https://github.com/PacificBiosciences/pbcore)
+3. Clone SMALR source code from GitHub to a local SMALR repository
    - https://github.com/jbeaulaurier/SMALR
 4. Install SMALR inside your virtual environment
    - cd  <SMALR repository>
@@ -36,13 +34,16 @@ Installation:
 5. Confirm installation by testing both SMsn and SMp protocols 
    - cd test
    - sh run_test_SMsn.sh
+     * Should generate the folder ref000001_SMsn, containing pipeline output
    - sh run_test_SMp.sh
+     * Should generate the folders ref000001_SMp through ref000004_SMp,
+       containing pipeline output
 
 ############
 Pipeline input
 ############
-Both the SMsn and SMp protocols require the following argument (file with the following):
-   - Specifies relevant file paths in the format:
+Both the SMsn and SMp protocols require an input_files.txt argument:
+   - Specifies relevant file paths in the following format:
       native_cmph5: <path to native cmp.h5>
       fastq:        <path to native CCS fastq file> (optional, can specify NONE)
       wga_cmph5:    <path to WGA cmp.h5> (optional, can specify native cmp.h5 if not available)
@@ -56,7 +57,6 @@ Both the SMsn and SMp protocols require the following argument (file with the fo
         alignment step that is used to mask out sequencing errors on each molecule. --align 
         should never be used with the SMp protocol and long libraries, as CCS only works with 
         short libraries.
-      * 
 
 ############
 Pipeline output
@@ -65,3 +65,15 @@ One output directory will be created for each contig in the reference. If there 
 only one contig, the results will be placed in ref000001. These results include a 
 log detailing the analysis of that contig, the motif positions in that contig (forward 
 and reverse strand), a fasta file of that contig, and a results file (SMsn.out or SMp.out). 
+This results file contains the following informtation:
+
+Column  Meaning
+1       Contig strand
+2       Contig motif position (for SMp, pooled motif sites are summarized by smallest site position)
+3       SMsn or SMp score (native score - WGA score)
+4       Molecule ID
+5       Native score (mean of subread-normalized ln(IPD) values; site- and molecule-specific)
+6       WGA score (mean of subread-normalized ln(IPD) values; site-specific accross all WGA molecules)
+7       Number of data points used to get the molecule-level native score
+8       Number of data points used to get the aggregate WGA score
+9       Mean length of subreads from the native molecule
