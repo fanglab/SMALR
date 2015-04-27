@@ -24,8 +24,10 @@ Installation:
    - See http://docs.python-guide.org/en/latest/dev/virtualenvs/
 2. Install package dependencies inside your virtual environment
    - numpy >= 1.9.1 ('pip install numpy')
+   - cython >= 0.17 ('pip install cython')
    - h5py >= 2.4.0 ('pip install h5py')
    - pbcore >= 0.9.4 (https://github.com/PacificBiosciences/pbcore)
+     * Requires Python >= 2.7
 3. Clone SMALR source code from GitHub to a local SMALR repository
    - https://github.com/jbeaulaurier/SMALR
 4. Install SMALR inside your virtual environment

@@ -22,9 +22,8 @@ setup(
 		package_data= {'smalr': ['R/*.r']},
 		zip_safe= False,
 		scripts= ['bin/smalr',
-			      'bin/call_smalr.py'],
+			  'bin/call_smalr.py'],
 		install_requires=['pbcore >= 0.9.4',
-				 		  'h5py >= 2.0.1',
-				 		  'numpy >= 1.6.0',
-				 		  'cython >= 0.22',
-				 		  'matplotlib >= 1.4.3'])
+				  'h5py >= 2.0.1',
+				  'numpy >= 1.6.0',
+				  'cython >= 0.17'])
