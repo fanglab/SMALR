@@ -46,17 +46,18 @@ Both the SMsn and SMp protocols require an input_files.txt argument:
    - Specifies relevant file paths in the following format:
       native_cmph5: <path to native cmp.h5>
       fastq:        <path to native CCS fastq file> (optional, can specify NONE)
-      wga_cmph5:    <path to WGA cmp.h5> (optional, can specify native cmp.h5 if not available)
+      wga_cmph5:    <path to WGA cmp.h5> (optional, can specify native cmp.h5 if not 
+                    available)
       ref:          <path to reference that matches that used in the cmp.h5 files>
    - IMPORTANT NOTES:
-      * For good results, cmp.h5 files generated from short library sequencing should be
-        paired with the SMsn protocol.
+      * For good results, cmp.h5 files generated from short library sequencing should 
+        be paired with the SMsn protocol.
       * Conversely, cmp.h5 files containing long library-sequenced reads are best when
         using the SMp protocol.
-      * A CCS fastq file is only REQUIRED when the --align option is specified. This calls an
-        alignment step that is used to mask out sequencing errors on each molecule. --align 
-        should never be used with the SMp protocol and long libraries, as CCS only works with 
-        short libraries.
+      * A CCS fastq file is only REQUIRED when the --align option is specified. This 
+        calls an alignment step that is used to mask out sequencing errors on each 
+        molecule. --align should never be used with the SMp protocol and long libraries, 
+        as CCS sequencing only works with short libraries.
 
 ############
 Pipeline output
@@ -64,16 +65,19 @@ Pipeline output
 One output directory will be created for each contig in the reference. If there is
 only one contig, the results will be placed in ref000001. These results include a 
 log detailing the analysis of that contig, the motif positions in that contig (forward 
-and reverse strand), a fasta file of that contig, and a results file (SMsn.out or SMp.out). 
-This results file contains the following informtation:
+and reverse strand), a fasta file of that contig, and a results file (SMsn.out or 
+SMp.out). This results file contains the following informtation:
 
 Column  Meaning
 1       Contig strand
-2       Contig motif position (for SMp, pooled motif sites are summarized by smallest site position)
+2       Contig motif position (for SMp, pooled motif sites are summarized by smallest 
+        site position)
 3       SMsn or SMp score (native score - WGA score)
 4       Molecule ID
-5       Native score (mean of subread-normalized ln(IPD) values; site- and molecule-specific)
-6       WGA score (mean of subread-normalized ln(IPD) values; site-specific accross all WGA molecules)
+5       Native score (mean of subread-normalized ln(IPD) values; site- and molecule-
+        specific)
+6       WGA score (mean of subread-normalized ln(IPD) values; site-specific accross 
+        all WGA molecules)
 7       Number of data points used to get the molecule-level native score
 8       Number of data points used to get the aggregate WGA score
 9       Mean length of subreads from the native molecule
