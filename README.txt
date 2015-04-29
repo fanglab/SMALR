@@ -22,6 +22,7 @@ Dependencies
 ###########
 - bwa >= 0.7
 - samtools >= 0.1.18
+- R >= 3.0
 
 ############
 Installation:
@@ -33,17 +34,17 @@ Installation:
       2) 'virtualenv smalr_venv'
       3) 'source smalr_env/bin/activate'
    - IMPORTANT: This virtual environment must be activated (step #3 above) in order
-       to run SMALR!
+     to run SMALR!
 2. Clone SMALR source code from GitHub to a local SMALR repository
    - 'git clone https://github.com/fanglab/SMALR.git'
 2. Install SMALR and required packages inside your virtual environment
    - 'cd SMALR'
-   - 'sh install.sh'
+   - './install.sh'
 5. Confirm successful installation by testing both SMsn and SMp protocols 
    - 'cd test'
-   - 'sh run_test_SMsn.sh'
+   - './run_test_SMsn.sh'
      * Should generate the folder ref000001_SMsn, containing pipeline output
-   - 'sh run_test_SMp.sh'
+   - './run_test_SMp.sh'
      * Should generate the folders ref000001_SMp through ref000004_SMp, each
        containing pipeline output
 
