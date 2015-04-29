@@ -17,28 +17,34 @@ single long subread can span many distinct motif sites. The reliability of
 the SMp scores increases with increasing number of distinct motif sites 
 contained in the subread.
 
+###########
+Dependencies
+###########
+- bwa >= 0.7
+- samtools >= 0.1.18
+
 ############
 Installation:
 ############
-1. Create and activate a python virtual environment with virtualenv
-   - See http://docs.python-guide.org/en/latest/dev/virtualenvs/
-2. Install package dependencies inside your virtual environment
-   - numpy >= 1.9.1 ('pip install numpy')
-   - cython >= 0.17 ('pip install cython')
-   - h5py >= 2.4.0 ('pip install h5py')
-   - pbcore >= 0.9.4 (https://github.com/PacificBiosciences/pbcore)
-     * Requires Python >= 2.7
-3. Clone SMALR source code from GitHub to a local SMALR repository
-   - https://github.com/jbeaulaurier/SMALR
-4. Install SMALR inside your virtual environment
-   - cd  <SMALR repository>
-   - python setup.py install
-5. Confirm installation by testing both SMsn and SMp protocols 
-   - cd test
-   - sh run_test_SMsn.sh
+1. Create and activate a python virtual environment using virtualenv
+   - Detailed instructions at http://docs.python-guide.org/en/latest/dev/virtualenvs/
+   - Simplest procedure:
+      1) 'pip install virtualenv' <-- requires pip
+      2) 'virtualenv smalr_venv'
+      3) 'source smalr_env/bin/activate'
+   - IMPORTANT: This virtual environment must be activated (step #3 above) in order
+       to run SMALR!
+2. Clone SMALR source code from GitHub to a local SMALR repository
+   - 'git clone https://github.com/fanglab/SMALR.git'
+2. Install SMALR and required packages inside your virtual environment
+   - 'cd SMALR'
+   - 'sh install.sh'
+5. Confirm successful installation by testing both SMsn and SMp protocols 
+   - 'cd test'
+   - 'sh run_test_SMsn.sh'
      * Should generate the folder ref000001_SMsn, containing pipeline output
-   - sh run_test_SMp.sh
-     * Should generate the folders ref000001_SMp through ref000004_SMp,
+   - 'sh run_test_SMp.sh'
+     * Should generate the folders ref000001_SMp through ref000004_SMp, each
        containing pipeline output
 
 ############
