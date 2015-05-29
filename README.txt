@@ -29,22 +29,28 @@ Installation:
 ############
 1. Create and activate a python virtual environment using virtualenv
    - Detailed instructions at http://docs.python-guide.org/en/latest/dev/virtualenvs/
-   - Simplest procedure:
-      1) 'pip install virtualenv' <-- requires pip
-      2) 'virtualenv smalr_venv'
-      3) 'source smalr_env/bin/activate'
-   - IMPORTANT: This virtual environment must be activated (step #3 above) in order
-     to run SMALR!
+   - Two routes
+      * If pip is installed:
+         1) pip install virtualenv
+         2) virtualenv smalr_venv
+         3) . smalr_env/bin/activate
+      * If pip is NOT installed:
+         1) curl -O https://pypi.python.org/packages/source/v/virtualenv/virtualenv-13.0.1.tar.gz
+         2) tar xvfz virtualenv-13.0.1.tar.gz 
+         3) cd virtualenv-13.0.1
+         4) python virtualenv.py smalr_venv
+         5) . smalr_env/bin/activate
+   - IMPORTANT: This virtual environment must be activated in order to run SMALR!
 2. Clone SMALR source code from GitHub to a local SMALR repository
-   - 'git clone https://github.com/fanglab/SMALR.git'
+   - git clone https://github.com/fanglab/SMALR.git
 2. Install SMALR and required packages inside your virtual environment
-   - 'cd SMALR'
-   - './install.sh'
+   - cd SMALR
+   - ./install.sh
 5. Confirm successful installation by testing both SMsn and SMp protocols 
-   - 'cd test'
-   - './run_test_SMsn.sh'
+   - cd test'
+   - ./run_test_SMsn.sh
      * Should generate the folder ref000001_SMsn, containing pipeline output
-   - './run_test_SMp.sh'
+   - ./run_test_SMp.sh
      * Should generate the folders ref000001_SMp through ref000004_SMp, each
        containing pipeline output
 
