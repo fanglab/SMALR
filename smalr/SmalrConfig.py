@@ -32,7 +32,7 @@ class RunnerConfig:
 		more passes (i.e. higher single-molecule coverage).
 
 		Example usage for SMsn analysis:
-		smalr -i --SMsn --motif=GATC --mod_pos=1 --nat_lib=short --wga_lib=short --procs=4 -c 5 input.txt
+		smalr -i --SMsn --motif=GATC --mod_pos=2 --nat_lib=short --wga_lib=short --procs=4 -c 5 input.txt
 
 
 		SMp: Single-molecule, motif-pooled analysis
@@ -44,7 +44,7 @@ class RunnerConfig:
 		contained in the subread.
 
 		Example usage for SMp analysis:
-		smalr -i --SMp --motif=GATC --mod_pos=1 --nat_lib=long --wga_lib=long --procs=4 -c 5 input.txt
+		smalr -i --SMp --motif=GATC --mod_pos=2 --nat_lib=long --wga_lib=long --procs=4 -c 5 input.txt
 		"""
 
 		parser = optparse.OptionParser( usage=usage, description=__doc__ )
@@ -55,7 +55,7 @@ class RunnerConfig:
 		parser.add_option( "--out", type="str", help="Filename to output SMsn/SMp results [<SMsn/SMp>.out]" )
 		parser.add_option( "-c", "--nativeCovThresh", type="int", help="Per mol/strand coverage threshold below which to ignore molecules [10]" )
 		parser.add_option( "-m", "--motif", type="str", help="(Required) The sequence motif to be analyzed [None]" )
-		parser.add_option( "-s", "--mod_pos", type="int", help="(Required) The modified position (0-based) in the motif to be analyzed (e.g. for Gm6ATC, mod_pos=1) [None]" )
+		parser.add_option( "-s", "--mod_pos", type="int", help="(Required) The modified position in the motif to be analyzed (e.g. for Gm6ATC, mod_pos=2) [None]" )
 		parser.add_option( "--wgaCovThresh", type="int", help="Aggregate WGA coverage threshold below which to skip analysis at that position [10]" )
 		parser.add_option( "--SMsn", action="store_true", help="Use short-library, single-nucleotide detection protocol. [False]" )
 		parser.add_option( "--SMp", action="store_true", help="Use long-library epigenetic phasing protocol (pool IPDs from each subread). [False]" )
@@ -79,7 +79,7 @@ class RunnerConfig:
 							 motif=None,                       \
 							 mod_pos=None,                     \
 							 wgaCovThresh=10,                  \
-							 align=False,			           \
+							 align=False,			   \
 							 upstreamSkip=10,                  \
 							 downstreamSkip=10,                \
 							 minSubreadLen=100,                \
@@ -99,6 +99,9 @@ class RunnerConfig:
 		if len(args) == 0:
 			print usage
 			sys.exit()
+
+		# Shift the --mod_pos value into Pythonic 0-based indexing
+		self.opts.mod_pos -= 1
 
 		# Hard-coded parameters to avoid effect of adapter sequence on polymerase kinetics
 		self.opts.firstBasesToSkip = 15
