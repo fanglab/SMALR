@@ -40,7 +40,7 @@ Installation:
          3) cd virtualenv-13.0.1
          4) python virtualenv.py smalr_venv
          5) . smalr_env/bin/activate
-   - IMPORTANT: This virtual environment must be activated in order to run SMALR!
+   - IMPORTANT: This virtual environment must be activated to install & run SMALR!
 2. Clone SMALR source code from GitHub to a local SMALR repository
    - git clone https://github.com/fanglab/SMALR.git
 2. Install SMALR and required packages inside your virtual environment
