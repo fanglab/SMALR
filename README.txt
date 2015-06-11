@@ -20,6 +20,7 @@ contained in the subread.
 ###########
 Dependencies
 ###########
+- python >= 2.7
 - bwa >= 0.7
 - samtools >= 0.1.18
 - R >= 3.0
@@ -33,7 +34,7 @@ Installation:
       * If pip is installed:
          1) pip install virtualenv
          2) virtualenv smalr_venv
-         3) . smalr_env/bin/activate
+         3) . smalr_venv/bin/activate
       * If pip is NOT installed:
          1) curl -O https://pypi.python.org/packages/source/v/virtualenv/virtualenv-13.0.1.tar.gz
          2) tar xvfz virtualenv-13.0.1.tar.gz 
@@ -47,7 +48,7 @@ Installation:
    - cd SMALR
    - ./install.sh
 5. Confirm successful installation by testing both SMsn and SMp protocols 
-   - cd test'
+   - cd test
    - ./run_test_SMsn.sh
      * Should generate the folder ref000001_SMsn, containing pipeline output
    - ./run_test_SMp.sh
@@ -65,6 +66,9 @@ Both the SMsn and SMp protocols require an input_files.txt argument:
                     available)
       ref:          <path to reference that matches that used in the cmp.h5 files>
    - IMPORTANT NOTES:
+      * When specifying the modified position in a motif, use 0-based position counting.
+        For example, to specify the modified adenine in the GATC motif, the modified 
+        position would be 1 (using options '--motif=GATC --mod_pos=1').
       * For good results, cmp.h5 files generated from short library sequencing should 
         be paired with the SMsn protocol.
       * Conversely, cmp.h5 files containing long library-sequenced reads are best when
