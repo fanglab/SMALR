@@ -66,9 +66,6 @@ Both the SMsn and SMp protocols require an input_files.txt argument:
                     available)
       ref:          <path to reference that matches that used in the cmp.h5 files>
    - IMPORTANT NOTES:
-      * When specifying the modified position in a motif, use 0-based position counting.
-        For example, to specify the modified adenine in the GATC motif, the modified 
-        position would be 1 (using options '--motif=GATC --mod_pos=1').
       * For good results, cmp.h5 files generated from short library sequencing should 
         be paired with the SMsn protocol.
       * Conversely, cmp.h5 files containing long library-sequenced reads are best when
