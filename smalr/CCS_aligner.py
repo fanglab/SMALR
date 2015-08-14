@@ -60,9 +60,10 @@ class mols_aligner:
 						zmw_id                   = readname.split("/")[-2] + "_" + str(movie_id)
 					else:
 						zmw_id                   = readname.split("/")[-1] + "_" + str(movie_id)
+					
 					zmw_line_map[zmw_id]     = line_n
 					zmw_readname_map[zmw_id] = readname
-
+				
 				n_mols       = len(mols)
 				not_in_fastq = 0
 				for n,mol in enumerate(mols):
@@ -76,7 +77,6 @@ class mols_aligner:
 								i += 1
 							j = 0
 							while j < 4:
-								# print f.next()
 								new_fastq_f.write(f.next())
 								j += 1
 							mol.in_fastq = True
