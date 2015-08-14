@@ -378,14 +378,14 @@ class native_molecules_processor:
 				vars_str = ",".join(map(lambda x: str(x), mol.var_no_sc))
 				self.var_f.write("%s %s\n" % (mol.mol_id, vars_str))
 
-		if self.nat_lib=="short":
-			# If the empirical start/end discovery showed a lack of positions with sufficient coverage, remove molecule
-			del_me = [mol.mol_id for mol in self.mols.values() if mol.to_del]
-			logging.debug("Process %s (chunk %s): deleting %s molecules due to too many positions with low coverage." % (self.chunk_id, \
-																														  i, \
-																														  len(del_me)))
-			for mol_id in del_me:
-				del self.mols[mol_id]
+		# if self.SMsn:
+		# 	# If the empirical start/end discovery showed a lack of positions with sufficient coverage, remove molecule
+		# 	del_me = [mol.mol_id for mol in self.mols.values() if mol.to_del]
+		# 	logging.debug("Process %s (chunk %s): deleting %s molecules due to too many positions with low coverage." % (self.chunk_id, \
+																														  # i, \
+																														  # len(del_me)))
+			# for mol_id in del_me:
+			# 	del self.mols[mol_id]
 
 		if len(self.mols.values()) > 0:
 			# Identify and remove positions to be excluded from further analysis
