@@ -37,8 +37,8 @@ class molecule:
 		self.sub_align_ends   = []
 		self.load_entries( alignments, sites_pos, sites_neg )
 		
-		self.min_pos = min(self.sub_align_starts)
-		self.max_pos = max(self.sub_align_ends)
+		self.first_pos = min(self.sub_align_starts)
+		self.last_pos  = max(self.sub_align_ends)
 		# self.subread_normalize(  )
 
 	def load_entries( self, alignments, sites_pos, sites_neg ):
