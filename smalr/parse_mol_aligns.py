@@ -27,14 +27,18 @@ class molecule:
 	def __init__( self, alignments, prefix, leftAnchor, rightAnchor, contig_id, sites_pos, sites_neg ):
 		"""
 		"""
-		self.leftAnchor  = leftAnchor
-		self.rightAnchor = rightAnchor
-		self.contig      = contig_id
-		self.mapped      = False
-		self.in_fastq    = False
-		self.to_del      = False
+		self.leftAnchor       = leftAnchor
+		self.rightAnchor      = rightAnchor
+		self.contig           = contig_id
+		self.mapped           = False
+		self.in_fastq         = False
+		self.to_del           = False
+		self.sub_align_starts = []
+		self.sub_align_ends   = []
 		self.load_entries( alignments, sites_pos, sites_neg )
 		
+		self.min_pos = min(self.sub_align_starts)
+		self.max_pos = max(self.sub_align_ends)
 		# self.subread_normalize(  )
 
 	def load_entries( self, alignments, sites_pos, sites_neg ):
@@ -54,6 +58,11 @@ class molecule:
 			read_calls = alignment.transcript()
 			ref_pos    = list(alignment.referencePositions())
 			IPD        = list(alignment.IPD())
+
+			align_min_pos = min(alignment.rStart, alignment.rEnd)
+			align_max_pos = max(alignment.rStart, alignment.rEnd)
+			self.sub_align_starts.append( align_min_pos )
+			self.sub_align_ends.append( align_max_pos )
 
 			error_mk = []
 			for read_call in read_calls:
@@ -365,7 +374,7 @@ class native_molecules_processor:
 			# Need to empirically try to determine subread start/end positions in order to designate off-limits entries.
 			for mol in self.mols.values():
 				mol.var_pos = []
-				self.empirical_get_start_end_pos( mol )
+				# self.empirical_get_start_end_pos( mol )
 		elif len(self.mols.values()) > 0:
 			CCS = CCS_aligner.mols_aligner( self.mols,                \
 											self.fastq,               \
@@ -501,32 +510,32 @@ class native_molecules_processor:
 		self.mols = mols_dict_covFiltered
 		logging.debug("Process %s: %s molecules have coverage >= %.1f" % (self.chunk_id, len(self.mols), self.nativeCovThresh))
 
-	def empirical_get_start_end_pos( self, mol ):
-		"""
-		When skipping the CCS alignment step, we need to try to determine reference-based
-		coordinates of the start and end of each molecule template.
-		"""
-		cov_counter = Counter()
-		for entry in mol.entries.values():
-			cov_counter[entry.pos] += 1
+	# def empirical_get_start_end_pos( self, mol ):
+	# 	"""
+	# 	When skipping the CCS alignment step, we need to try to determine reference-based
+	# 	coordinates of the start and end of each molecule template.
+	# 	"""
+	# 	cov_counter = Counter()
+	# 	for entry in mol.entries.values():
+	# 		cov_counter[entry.pos] += 1
 
-		# valid_positions = [pos for (pos, cov) in cov_counter.iteritems() if cov >= (2*self.nativeCovThresh)]
-		# Want to allow for some IPDs being thrown out due to +1:-1 filtering when pulling from cmp.h5 file.
-		# That's why I'm multiplying by 1.5 instead of 2 (looking at both strands combined here)
-		valid_positions = [pos for (pos, cov) in cov_counter.iteritems() if cov >= (1.5*self.nativeCovThresh)]
-		if self.opts.SMp:
-			valid_positions = [pos for (pos, cov) in cov_counter.iteritems()]
+	# 	# valid_positions = [pos for (pos, cov) in cov_counter.iteritems() if cov >= (2*self.nativeCovThresh)]
+	# 	# Want to allow for some IPDs being thrown out due to +1:-1 filtering when pulling from cmp.h5 file.
+	# 	# That's why I'm multiplying by 1.5 instead of 2 (looking at both strands combined here)
+	# 	valid_positions = [pos for (pos, cov) in cov_counter.iteritems() if cov >= (1.5*self.nativeCovThresh)]
+	# 	if self.opts.SMp:
+	# 		valid_positions = [pos for (pos, cov) in cov_counter.iteritems()]
 		
-		if len(valid_positions) == 0:
-			mol.to_del = True
-		else:	
-			mol.first_pos   = min(valid_positions)
-			mol.last_pos    = max(valid_positions)
+	# 	if len(valid_positions) == 0:
+	# 		mol.to_del = True
+	# 	else:	
+	# 		mol.first_pos   = min(valid_positions)
+	# 		mol.last_pos    = max(valid_positions)
 
 	def remove_off_limits_positions( self, mol ):
 		"""Make a list of positions around the SNP to avoid during analysis.
 
-		Also identify the earliest base position in the read. Will want to skip
+		Also identify the earliest base position in the subread. Will want to skip
 		the first seven bases because of the adapter context not matching the
 		reference context and introducing false kinetic signatures."""
 		plus_off_limits  = []
