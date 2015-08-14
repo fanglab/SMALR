@@ -168,8 +168,8 @@ class SmalrRunner():
 		reader                  = CmpH5Reader(cmph5_file)
 		local_control_ipds      = {}
 		for chunk_id,idx_chunk in enumerate(idx_chunks):
-			idx_mins = [min(reader[idx].rStart, reader[idx].rEnd) for idx in idx_chunk]
-			idx_maxs = [max(reader[idx].rStart, reader[idx].rEnd) for idx in idx_chunk]
+			idx_mins = [min(reader[idx].tStart, reader[idx].tEnd) for idx in idx_chunk]
+			idx_maxs = [max(reader[idx].tStart, reader[idx].tEnd) for idx in idx_chunk]
 			first_ref_pos  = min(idx_mins)
 			last_ref_pos   = max(idx_maxs)
 			# first_ref_pos  = pull_last_ref_pos_from_alignments_file( alignments_flat_fn, "head" )

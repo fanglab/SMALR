@@ -221,7 +221,7 @@ class wga_molecules_processor:
 		self.sites_neg_fn       = sites_neg
 		self.leftAnchor         = opts.leftAnchor
 		self.rightAnchor        = opts.rightAnchor
-		self.wga_lib            = opts.wga_lib
+		# self.wga_lib            = opts.wga_lib
 		self.contig_id          = opts.contig_id
 		self.opts               = opts
 		self.idx                = idx
@@ -325,7 +325,7 @@ class native_molecules_processor:
 		self.SMp                     = opts.SMp
 		self.leftAnchor              = opts.leftAnchor
 		self.rightAnchor             = opts.rightAnchor
-		self.nat_lib                 = opts.nat_lib
+		# self.nat_lib                 = opts.nat_lib
 		self.wgaCovThresh            = opts.wgaCovThresh
 		self.out                     = opts.out
 
@@ -493,7 +493,7 @@ class native_molecules_processor:
 			# IPDs in the distribution.
 			mol.cov          = max(plus_subreads, minus_subreads)
 
-			if mol.cov >= self.nativeCovThresh or self.nat_lib=="long":
+			if mol.cov >= self.nativeCovThresh or self.opts.SMp:
 				mols_dict_covFiltered[mol_id] = mol
 
 		if len(mols_dict_covFiltered.keys())==0:
@@ -514,7 +514,7 @@ class native_molecules_processor:
 		# Want to allow for some IPDs being thrown out due to +1:-1 filtering when pulling from cmp.h5 file.
 		# That's why I'm multiplying by 1.5 instead of 2 (looking at both strands combined here)
 		valid_positions = [pos for (pos, cov) in cov_counter.iteritems() if cov >= (1.5*self.nativeCovThresh)]
-		if self.nat_lib=="long":
+		if self.opts.SMp:
 			valid_positions = [pos for (pos, cov) in cov_counter.iteritems()]
 		
 		if len(valid_positions) == 0:
@@ -582,7 +582,7 @@ class native_molecules_processor:
 		mol.ipdArrays = {0:{}, 1:{}}
 		for strand in ipdArrays.keys():
 			for pos in ipdArrays[strand].keys():
-				if len(ipdArrays[strand][pos]) >= self.nativeCovThresh or self.nat_lib=="long":
+				if len(ipdArrays[strand][pos]) >= self.nativeCovThresh or self.SMp:
 					mol.ipdArrays[strand][pos] = np.array(ipdArrays[strand][pos])
 
 	def get_scores( self, mol ):
