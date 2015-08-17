@@ -425,7 +425,7 @@ class native_molecules_processor:
 			self.get_scores( mol )
 
 		mols_w_results = len([mol for mol in self.mols.values() if len(mol.output)>0])
-		logging.debug("Process %s (chunk %s): %s molecules generated comparison test output" % (self.chunk_id, i, mols_w_results))
+		logging.debug("Process %s: %s molecules generated comparison test output" % (self.chunk_id, mols_w_results))
 
 		chunk_mols_with_output = []
 		self.chunk_dirname = "chunk%s" % self.chunk_id
@@ -661,8 +661,8 @@ class native_molecules_processor:
 		"""
 		"""
 		fns       = glob.glob("%s/mol_*.tmp.txt" % self.chunk_dirname)
-		# fns       = map(lambda x: "mol_%s.tmp.txt" % x, mols_with_output)
-		cat_CMD   = "cat %s >> %s" % (" ".join(fns), self.chunk_output_fn)
+		# cat_CMD   = "cat %s >> %s" % (" ".join(fns), self.chunk_output_fn)
+		cat_CMD   = "ls %s/mol_*.tmp.txt | xargs -n 100 -P %s cat >> %s" % (" ".join(fns), self.opts.procs, self.chunk_output_fn)
 		p         = subprocess.Popen(cat_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		stdOutErr = p.communicate()
 		sts       = p.returncode
