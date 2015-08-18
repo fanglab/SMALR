@@ -664,6 +664,7 @@ class native_molecules_processor:
 		# cat_CMD   = "cat %s >> %s" % (" ".join(fns), self.chunk_output_fn)
 		# cat_CMD   = "ls %s/mol_*.tmp.txt | xargs -n 100 -P %s cat >> %s" % (" ".join(fns), self.opts.procs, self.chunk_output_fn)
 		cat_CMD   = "find -type f -name %s/mol_*.tmp.txt | xargs -n 100 -P %s cat >> %s" % (" ".join(fns), self.opts.procs, self.chunk_output_fn)
+		print cat_CMD
 		p         = subprocess.Popen(cat_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		stdOutErr = p.communicate()
 		sts       = p.returncode
