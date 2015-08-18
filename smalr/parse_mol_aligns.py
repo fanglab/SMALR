@@ -671,8 +671,8 @@ class native_molecules_processor:
 		if sts != 0:
 			raise Exception("Failed alignment command: %s" % cat_CMD)
 
-		for fn in fns:
-			try:
-				os.remove(fn)
-			except OSError:
-				pass
+		# for fn in fns:
+		# 	try:
+		# 		os.remove(fn)
+		# 	except OSError:
+		# 		pass
