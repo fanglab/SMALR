@@ -45,11 +45,11 @@ def cat_list_of_files( in_fns, out_fn, header=None ):
 	sts       = p.returncode
 	if sts != 0:
 		raise Exception("Failed cat command: %s" % cat_CMD)
-	for fn in in_fns:
-		try:
-			os.remove(fn)
-		except OSError:
-			pass
+	# for fn in in_fns:
+	# 	try:
+	# 		os.remove(fn)
+	# 	except OSError:
+	# 		pass
 	return out_fn
 
 def fasta_iter(fasta_name):

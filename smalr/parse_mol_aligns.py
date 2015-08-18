@@ -439,7 +439,7 @@ class native_molecules_processor:
 		if mols_w_results > 0:
 			self.concatenate_mol_results()
 
-		shutil.rmtree(self.chunk_dirname)
+		# shutil.rmtree(self.chunk_dirname)
 
 		if self.align:
 			self.var_f.close()
