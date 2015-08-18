@@ -59,8 +59,6 @@ class RunnerConfig:
 		parser.add_option( "--wgaCovThresh", type="int", help="Aggregate WGA coverage threshold below which to skip analysis at that position [10]" )
 		parser.add_option( "--SMsn", action="store_true", help="Use short-library, single-nucleotide detection protocol. [False]" )
 		parser.add_option( "--SMp", action="store_true", help="Use long-library epigenetic phasing protocol (pool IPDs from each subread). [False]" )
-		# parser.add_option( "--nat_lib", type="str", help="String specifying the native sequencing library prep used. Either 'short' (for ~250bp) or 'long' (for 10Kb+). Used to manage memory consumption. [short]" )
-		# parser.add_option( "--wga_lib", type="str", help="String specifying the WGA sequencing library prep used. Either 'short' (for ~250bp) or 'long' (for 10Kb+). Used to manage memory consumption. [short]" )
 		parser.add_option( "--procs", type="int", help="Number of processors to use [4]" )
 		parser.add_option( "--align", action="store_true", help="Align native reads to reference to avoid real SNP positions. Only use when expecting sequence heterogeneity in sample (i.e. mtDNA). [False]" )
 		parser.add_option( "--upstreamSkip", type="int", help="Number of bases 5' of a CCS-detected, molecule-level SNP to skip in analysis (only when using --align) [10]" )
@@ -71,7 +69,7 @@ class RunnerConfig:
 		parser.add_option( "--natProcs", type="int", help="Number of processors to use for native molecule analysis [same as procs]" )
 		parser.add_option( "--leftAnchor", type="int", help="Number of left bp to exclude around subread-level alignment errors [1]" )
 		parser.add_option( "--rightAnchor", type="int", help="Number of right bp to exclude around subread-level alignment errors [1]" )
-		parser.add_option( "--write_vars", type="str", help="Write mol-specific variant calls to this file (only when using --align) [None]" )
+		parser.add_option( "--write_vars", type="str", help="Write mol-specific variant calls to this filename (only when using --align) [None]" )
 		parser.set_defaults( logFile="log.out",                \
 							 debug=False,                      \
 							 info=False,                       \
@@ -89,8 +87,6 @@ class RunnerConfig:
 							 natProcs=None,                    \
 							 SMsn=False,                       \
 							 SMp=False,                        \
-							 # wga_lib="short",                  \
-							 # nat_lib="short",                  \
 							 leftAnchor=1,                     \
 							 rightAnchor=1,                    \
 							 write_vars=None)
