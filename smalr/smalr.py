@@ -45,11 +45,11 @@ def cat_list_of_files( in_fns, out_fn, header=None ):
 	sts       = p.returncode
 	if sts != 0:
 		raise Exception("Failed cat command: %s" % cat_CMD)
-	# for fn in in_fns:
-	# 	try:
-	# 		os.remove(fn)
-	# 	except OSError:
-	# 		pass
+	for fn in in_fns:
+		try:
+			os.remove(fn)
+		except OSError:
+			pass
 	return out_fn
 
 def fasta_iter(fasta_name):
@@ -362,9 +362,9 @@ class SmalrRunner():
 		parallel_output_fns = self.launch_parallel_molecule_loading( self.Config.native_cmph5, prefix, native_movie_name_ID_map, control_ipds )
 
 		logging.info("%s - Combining chunked test output files..." % self.Config.opts.contig_id)
-		out_files_to_cat = [fn for fn in parallel_output_fns if os.path.exists(fn)]
-		head             = "strand\tpos\tscore\tmol\tnat\twga\tN_nat\tN_wga\tsubread_len\n"
-		self.Config.opts.out    = cat_list_of_files( out_files_to_cat, self.Config.opts.out, header=head )
+		out_files_to_cat     = [fn for fn in parallel_output_fns if os.path.exists(fn)]
+		head                 = "strand\tpos\tscore\tmol\tnat\twga\tN_nat\tN_wga\tsubread_len\n"
+		self.Config.opts.out = cat_list_of_files( out_files_to_cat, self.Config.opts.out, header=head )
 		logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 		if self.Config.opts.align and self.Config.opts.write_vars:

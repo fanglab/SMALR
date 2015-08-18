@@ -427,19 +427,9 @@ class native_molecules_processor:
 		mols_w_results = len([mol for mol in self.mols.values() if len(mol.output)>0])
 		logging.debug("Process %s: %s molecules generated comparison test output" % (self.chunk_id, mols_w_results))
 
-		chunk_mols_with_output = []
-		self.chunk_dirname = "chunk%s" % self.chunk_id
-		if os.path.exists(self.chunk_dirname): shutil.rmtree(self.chunk_dirname)
-		os.mkdir(self.chunk_dirname)
-		for mol in self.mols.values():
-			if len(mol.output) > 0:
-				self.print_output( mol )
-				chunk_mols_with_output.append( mol.mol_id )
-
 		if mols_w_results > 0:
-			self.concatenate_mol_results()
-
-		# shutil.rmtree(self.chunk_dirname)
+			self.print_output(self.mols.values())
+			# self.concatenate_mol_results()
 
 		if self.align:
 			self.var_f.close()
@@ -646,30 +636,34 @@ class native_molecules_processor:
 					else:
 						logging.debug("No entry for position %s in local control dict)" % pos)
 
-	def print_output( self, mol ):
+	def print_output( self, mols ):
 		"""
 		Print the output lines to a molecule-specific tmp file. These will be catted together
 		at the end.
 		"""
-		out_fn  = "%s/mol_%s.tmp.txt" % (self.chunk_dirname, mol.mol_id)
-		outfile = open(out_fn, "w")
-		for line in mol.output:
-			outfile.write("%s\n" % line)
-		outfile.close()
+		# out_fn  = "%s/mol_%s.tmp.txt" % (self.chunk_dirname, mol.mol_id)
+		# outfile = open(out_fn, "w")
+		# for line in mol.output:
+		# 	outfile.write("%s\n" % line)
+		# outfile.close()
 
-	def concatenate_mol_results( self ):
-		"""
-		"""
-		fns       = glob.glob("%s/mol_*.tmp.txt" % self.chunk_dirname)
-		# cat_CMD   = "cat %s >> %s" % (" ".join(fns), self.chunk_output_fn)
-		# cat_CMD   = "ls %s/mol_*.tmp.txt | xargs -n 100 -P %s cat >> %s" % (" ".join(fns), self.opts.procs, self.chunk_output_fn)
-		cat_CMD   = "find -type f -name %s/mol_*.tmp.txt | xargs -n 100 -P %s cat >> %s" % (self.chunk_dirname, self.opts.procs, self.chunk_output_fn)
-		print cat_CMD
-		p         = subprocess.Popen(cat_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		stdOutErr = p.communicate()
-		sts       = p.returncode
-		if sts != 0:
-			raise Exception("Failed alignment command: %s" % cat_CMD)
+		out_fn = open(self.chunk_output_fn, "w")
+		for mol in mols:
+			for line in mol.output:
+				out_fn.write("%s\n" % line)
+		out_fn.close()
+
+	# def concatenate_mol_results( self ):
+	# 	fns       = glob.glob("%s/mol_*.tmp.txt" % self.chunk_dirname)
+	# 	# cat_CMD   = "cat %s >> %s" % (" ".join(fns), self.chunk_output_fn)
+	# 	# cat_CMD   = "ls %s/mol_*.tmp.txt | xargs -n 100 -P %s cat >> %s" % (" ".join(fns), self.opts.procs, self.chunk_output_fn)
+	# 	cat_CMD   = "find -type f -name %s/mol_*.tmp.txt | xargs -n 100 -P %s cat >> %s" % (self.chunk_dirname, self.opts.procs, self.chunk_output_fn)
+	# 	print cat_CMD
+	# 	p         = subprocess.Popen(cat_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	# 	stdOutErr = p.communicate()
+	# 	sts       = p.returncode
+	# 	if sts != 0:
+	# 		raise Exception("Failed alignment command: %s" % cat_CMD)
 
 		# for fn in fns:
 		# 	try:
