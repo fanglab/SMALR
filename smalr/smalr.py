@@ -50,7 +50,6 @@ def cat_list_of_files( in_fns, out_fn, header=None ):
 			os.remove(fn)
 		except OSError:
 			pass
-	return out_fn
 
 def fasta_iter(fasta_name):
 	"""
@@ -312,7 +311,7 @@ class SmalrRunner():
 				logging.debug("Done (%s)." % chunk_id)
 		
 		# Add a 'poison pill' for each consumer
-		for i in xrange(num_jobs):
+		for i in xrange(self.Config.opts.procs):
 			tasks.put(None)
 		tasks.join()
 		
@@ -364,14 +363,14 @@ class SmalrRunner():
 		logging.info("%s - Combining chunked test output files..." % self.Config.opts.contig_id)
 		out_files_to_cat     = [fn for fn in parallel_output_fns if os.path.exists(fn)]
 		head                 = "strand\tpos\tscore\tmol\tnat\twga\tN_nat\tN_wga\tsubread_len\n"
-		self.Config.opts.out = cat_list_of_files( out_files_to_cat, self.Config.opts.out, header=head )
+		cat_list_of_files( out_files_to_cat, self.Config.opts.out, header=head )
 		logging.debug("%s - Done." % self.Config.opts.contig_id)
 
 		if self.Config.opts.align and self.Config.opts.write_vars:
 			logging.info("%s - Combining chunked molecule-specific variant calls..." % self.Config.opts.contig_id)
 			vars_files_to_cat = glob.glob("vars_*.tmp")
 			head = "mol\tvar_pos\n"
-			self.Config.opts.write_vars = cat_list_of_files(vars_files_to_cat , self.Config.opts.write_vars, header=head )
+			cat_list_of_files(vars_files_to_cat , self.Config.opts.write_vars, header=head )
 			logging.debug("%s - Done." % self.Config.opts.contig_id)
 		elif self.Config.opts.align:
 			vars_files_to_del = glob.glob("vars_*.tmp")
@@ -383,7 +382,7 @@ class SmalrRunner():
 			os.remove(fn)
 		logging.debug("%s - Done." % self.Config.opts.contig_id)
 
-		if self.Config.opts.out != None:
+		if os.path.exists(self.Config.opts.out):
 			logging.info("Sorting output by strand/position...")
 			sort_CMD = "sort -t$'\\t' -nk2 %s > sorting.tmp" % self.Config.opts.out
 			p         = subprocess.Popen(sort_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -393,6 +392,10 @@ class SmalrRunner():
 				raise Exception("Failed sort command: %s" % sort_CMD)
 			os.rename("sorting.tmp", self.Config.opts.out)
 			logging.info("Done.")
+		else:
+			f = open(self.Config.opts.out, "w")
+			f.write("No output generated for this contig!\n")
+			f.close()
 
 def main():
 	app = SmalrRunner()

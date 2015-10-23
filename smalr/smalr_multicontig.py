@@ -50,7 +50,7 @@ class Smalr_multicontig_runner:
 			runner = SmalrRunner( i, nat_contig, abs_input_fn, self.Config )
 			runner.run()
 			os.chdir("../")
-
+		
 def main():
 	app = Smalr_multicontig_runner()
 	sys.exit( app.run() )
