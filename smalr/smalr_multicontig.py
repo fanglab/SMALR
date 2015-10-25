@@ -42,7 +42,7 @@ class Smalr_multicontig_runner:
 
 		abs_input_fn = os.path.abspath(self.Config.input_file)
 		for i,nat_contig in enumerate(nat_contigs):
-			dir_name = "%s_%s" % (nat_contig[1], protocol)
+			dir_name = "%s_%s" % (nat_contig[0], protocol)
 			if os.path.exists(dir_name):
 				shutil.rmtree(dir_name)
 			os.mkdir(dir_name)
