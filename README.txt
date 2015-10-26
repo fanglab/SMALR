@@ -50,10 +50,11 @@ Installation:
 5. Confirm successful installation by testing both SMsn and SMp protocols 
    - cd test
    - ./run_test_SMsn.sh
-     * Should generate the folder ref000001_SMsn, containing pipeline output
+     * Should generate the contig-specific folder J99_SMsn, containing pipeline output.
    - ./run_test_SMp.sh
-     * Should generate the folders ref000001_SMp through ref000004_SMp, each
-       containing pipeline output
+     * Should generate the contig-specific folders scf7180000000008|quiver_SMp,
+       scf7180000000009|quiver_SMp, scf7180000000010|quiver_SMp, and scf7180000000011|quiver_SMp, 
+       each containing pipeline output.
 
 ############
 Pipeline input
@@ -79,10 +80,10 @@ Both the SMsn and SMp protocols require an input_files.txt argument:
 Pipeline output
 ############
 One output directory will be created for each contig in the reference. If there is
-only one contig, the results will be placed in ref000001. These results include a 
-log detailing the analysis of that contig, the motif positions in that contig (forward 
-and reverse strand), a fasta file of that contig, and a results file (SMsn.out or 
-SMp.out). This results file contains the following informtation:
+only one contig, the results will be placed in the folder named for that contig. These 
+results include a log detailing the analysis of that contig, the motif positions in 
+that contig (forward and reverse strand), a fasta file of that contig, and a results 
+file (SMsn.out or SMp.out). This results file contains the following informtation:
 
 Column  Meaning
 1       Contig strand
