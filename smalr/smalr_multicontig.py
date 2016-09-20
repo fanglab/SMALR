@@ -42,18 +42,18 @@ class Smalr_multicontig_runner:
 		cmp_contig_names = set(map(lambda x: x[0], contigs))
 		
 		fa_iter          = self.fasta_iter(self.Config.ref)
-		f = open(self.Config.ref+".tmp", "w")
+		#f = open(self.Config.ref+".tmp", "w")
 		for name,seq in fa_iter:
-			if name.find("|quiver")>-1:
-				name = name.split("|")[0]
-				f.write(">%s\n" % name)
-				f.write("%s\n" % seq)	
+			#if name.find("|quiver")>-1:
+			#	name = name.split("|")[0]
+			#	f.write(">%s\n" % name)
+			#	f.write("%s\n" % seq)	
 			if name not in cmp_contig_names:
 				raise Exception("%s in %s not found in %s!" % (name, self.Config.ref, self.Config.native_cmph5))
 			else:
 				pass
-		f.close()
-		self.Config.ref = self.Config.ref+".tmp"
+		#f.close()
+		#self.Config.ref = self.Config.ref+".tmp"
 
 	def run( self ):
 		nat_contigs  = self.get_reference_contigs(self.Config.native_cmph5)
