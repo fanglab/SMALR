@@ -268,7 +268,7 @@ class SmalrRunner():
 		chunksize    = int(math.ceil(float( len(alnIDs)/num_jobs )))
 		idx_chunks   = list(chunks( (np.array(alnIDs)-1), chunksize ))
 
-		if len(idx_chunks[-1])==1:
+		if len(idx_chunks[-1])==1 and len(idx_chunks)>1:
 			idx_chunks = idx_chunks[:-1]
 
 		if prefix == "nat_":
