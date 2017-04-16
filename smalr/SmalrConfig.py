@@ -70,6 +70,7 @@ class RunnerConfig:
 		parser.add_option( "--leftAnchor", type="int", help="Number of left bp to exclude around subread-level alignment errors [1]" )
 		parser.add_option( "--rightAnchor", type="int", help="Number of right bp to exclude around subread-level alignment errors [1]" )
 		parser.add_option( "--write_vars", type="str", help="Write mol-specific variant calls to this filename (only when using --align) [None]" )
+		parser.add_option( "--useZMW", action="store_true", help="Index molecules using ZMW/movie ID's instead of molecule IDs (if all alignments all have unique molecule IDs) [False]" )
 		parser.set_defaults( logFile="log.out",                \
 							 debug=False,                      \
 							 info=False,                       \
@@ -77,7 +78,7 @@ class RunnerConfig:
 							 motif=None,                       \
 							 mod_pos=None,                     \
 							 wgaCovThresh=10,                  \
-							 align=False,			   \
+							 align=False,			           \
 							 upstreamSkip=10,                  \
 							 downstreamSkip=10,                \
 							 minSubreadLen=100,                \
@@ -89,7 +90,8 @@ class RunnerConfig:
 							 SMp=False,                        \
 							 leftAnchor=1,                     \
 							 rightAnchor=1,                    \
-							 write_vars=None)
+							 write_vars=None,                  \
+							 useZMW=False)
 
 		self.opts, args = parser.parse_args( )
 		if len(args) == 0:

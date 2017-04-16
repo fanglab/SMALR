@@ -151,14 +151,14 @@ def generate_molecule_ZMW_map( mols, chunk_id ):
 
 	mol_ids              = zmw_mol_map.keys()
 	multi_loaded_mol_ids = [mol_id for mol_id in mol_ids if zmw_mol_counts[zmw_mol_map[mol_id]] > 1]
-	mols            = dict([ (mol.mol_id, mol) for mol in mols.values() if mol.mol_id not in multi_loaded_mol_ids])
+	no_dl_mols           = dict([ (mol.mol_id, mol) for mol in mols.values() if mol.mol_id not in multi_loaded_mol_ids])
 	try:
 		logging.debug("Process %s: removed %s double-loaded molecules (%.2f%%)." % (chunk_id,                  \
 																			  		len(multi_loaded_mol_ids), \
 																			  		100*len(multi_loaded_mol_ids)/float(len(mols.values()))))
 	except ZeroDivisionError:
 		logging.debug("Process %s: no molecules available for ZMW/moleculeID mapping!" % chunk_id)
-	return mols, zmw_mol_map
+	return no_dl_mols, zmw_mol_map
 
 def remove_split_up_molecules( mols, split_mols ):
 	"""
@@ -247,7 +247,10 @@ class wga_molecules_processor:
 		mol_alignments = defaultdict(list)
 		for alignment in reader[self.idx]:
 			if alignment.accuracy >= self.opts.minAcc and alignment.MapQV >= self.opts.minMapQV and len(alignment.alignmentArray()) >= self.opts.minSubreadLen:
-				mol_id = alignment.MoleculeID
+				if self.opts.useZMW:
+					mol_id = "%s_%s" % (alignment.HoleNumber, alignment.MovieID)
+				else:
+					mol_id = alignment.MoleculeID
 				mol_alignments[mol_id].append(alignment)
 
 		self.mols = {}
@@ -256,15 +259,23 @@ class wga_molecules_processor:
 		for i,(mol_id, alignments) in enumerate(mol_alignments.iteritems()):
 			if i%incr==0:
 				logging.info("...chunk %s - %s/%s (%.1f%%) alignments processed..." % (self.chunk_id, i, len(mol_alignments.keys()), 100*float(i)/len(mol_alignments.keys())))
-			mol_id                = alignments[0].MoleculeID
-			mol                   = molecule( alignments, self.prefix, self.leftAnchor, self.rightAnchor, self.contig_id, self.sites_pos, self.sites_neg )
+			
+			mol = molecule( alignments, self.prefix, self.leftAnchor, self.rightAnchor, self.contig_id, self.sites_pos, self.sites_neg )
+			if self.opts.useZMW:
+				# Replace the bad moleculeID with the good ZMW ID, formatted: <zmwID>_<movieID>
+				mol.mol_id = mol_id
+			
 			if len(mol.entries)>0:
 				self.mols[mol.mol_id] = mol
 
-		# Generate map between ZMW and molecule IDs (self.zmw_mol_map)
-		self.mols, self.zmw_mol_map = generate_molecule_ZMW_map( self.mols, self.chunk_id)
+		if self.opts.useZMW:
+			pass
+		else:
+			# Generate map between ZMW and molecule IDs (self.zmw_mol_map)
+			self.mols, self.zmw_mol_map = generate_molecule_ZMW_map( self.mols, self.chunk_id)
 
 		# Exclude any molecules that are divided between split-up alignment files
+		logging.debug("Process %s: removing %s total molecules whose alignments are different chunks..." % (self.chunk_id, len(self.split_mols )))
 		self.mols = remove_split_up_molecules( self.mols, self.split_mols )
 
 		# Generate the IPD arrays per genomic position/strand by aggregating all 
@@ -354,7 +365,10 @@ class native_molecules_processor:
 		mol_alignments = defaultdict(list)
 		for i,alignment in enumerate(reader[self.idx]):
 			if alignment.accuracy >= self.opts.minAcc and alignment.MapQV >= self.opts.minMapQV and len(alignment.alignmentArray()) >= self.opts.minSubreadLen:
-				mol_id = alignment.MoleculeID
+				if self.opts.useZMW:
+					mol_id = "%s_%s" % (alignment.HoleNumber, alignment.MovieID)
+				else:
+					mol_id = alignment.MoleculeID
 				mol_alignments[mol_id].append(alignment)
 
 		self.mols = {}
@@ -362,9 +376,14 @@ class native_molecules_processor:
 		for i,(mol_id, alignments) in enumerate(mol_alignments.iteritems()):
 			if i%incr==0:
 				logging.info("...chunk %s - processing molecules: %s/%s (%.1f%%)" % (self.chunk_id, i, len(mol_alignments.keys()), 100*i/len(mol_alignments.keys())))
+			
 			mol = molecule( alignments, self.prefix, self.leftAnchor, self.rightAnchor, self.contig_id, self.sites_pos, self.sites_neg )
+			if self.opts.useZMW:
+				# Replace the bad moleculeID with the good ZMW ID, formatted: <zmwID>_<movieID>
+				mol.mol_id = mol_id
+			
 			if len(mol.entries)>0:
-				self.mols[mol.mol_id] = mol
+				self.mols[mol_id] = mol
 
 		# Exclude any molecules that are divided between split-up alignment files
 		self.mols = remove_split_up_molecules( self.mols, self.split_mols )
