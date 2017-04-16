@@ -2,7 +2,7 @@ pkgTest <- function(x)
   {
     if (!require(x,character.only = TRUE))
     {
-      install.packages(x,dep=TRUE,repos="http://bioconductor.org/biocLite.R")
+      install.packages(x,dep=TRUE,repos="http://R-Forge.R-project.org")
         if(!require(x,character.only = TRUE)) stop("Package not found")
     }
   }
