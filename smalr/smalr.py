@@ -91,14 +91,14 @@ class Consumer(multiprocessing.Process):
 class SmalrRunner():
 	def __init__ ( self, i, contig_info, abs_input_file, Config ):
 		"""
-		Parse the options and arguments, then instantiate the logger. 
+		Parse the options and arguments, then instantiate the logger.
 		"""
 		self.i                       = i
 		self.Config                  = Config
 		self.Config.opts.contig_name = contig_info[0]
 		self.Config.opts.contig_id   = contig_info[1]
 		self.__initLog( )
-		
+
 		logging.info("%s - contig_id:               %s" % (self.Config.opts.contig_id, self.Config.opts.contig_id))
 		logging.info("%s - contig_name:             %s" % (self.Config.opts.contig_id, self.Config.opts.contig_name))
 
@@ -128,17 +128,17 @@ class SmalrRunner():
 		# create file handler which logs even debug messages
 		fh = logging.FileHandler(self.Config.opts.logFile)
 		fh.setLevel(logLevel)
-		
+
 		# create console handler with a higher log level
 		ch = logging.StreamHandler()
 		ch.setLevel(logLevel)
-		
+
 		# create formatter and add it to the handlers
 		logFormat = "%(asctime)s [%(levelname)s] %(message)s"
 		formatter = logging.Formatter(logFormat, datefmt='%H:%M:%S')
 		ch.setFormatter(formatter)
 		fh.setFormatter(formatter)
-		
+
 		# add the handlers to logger
 		if self.i == 0:
 			self.logger.addHandler(ch)
@@ -159,8 +159,8 @@ class SmalrRunner():
 
 	def split_up_control_IPDs( self, control_ipds, cmph5_file, idx_chunks ):
 		"""
-		Separate out relevant portions of the control_ipds dictionary. We are taking 
-		advantage of the fact that the alignment flat files are sorted by aligned 
+		Separate out relevant portions of the control_ipds dictionary. We are taking
+		advantage of the fact that the alignment flat files are sorted by aligned
 		reference position.
 		"""
 
@@ -187,12 +187,12 @@ class SmalrRunner():
 
 	def find_motif_sites(self):
 		"""
-		This will write two files for a given motif, modification position in the motif, 
+		This will write two files for a given motif, modification position in the motif,
 		and reference fasta. One file will have the motif positions on the forward strand
 		and one on the negative strand of the reference.
 		"""
 		f_iter = fasta_iter(self.Config.ref)
-		
+
 		contig_fasta_fn = "%s.fasta" % self.Config.opts.contig_id
 		f               = open(contig_fasta_fn, "w")
 		for name,seq in f_iter:
@@ -214,7 +214,7 @@ class SmalrRunner():
 			for entry in stdOutErr:
 				print entry
 			raise Exception("Failed command: %s" % Rscript_CMD)
-		
+
 		self.sites_pos = stdOutErr[0].split("\n")[0].split(" ")[1][1:-1]
 		self.sites_neg = stdOutErr[0].split("\n")[1].split(" ")[1][1:-1]
 
@@ -276,7 +276,7 @@ class SmalrRunner():
 			local_control_ipds = self.split_up_control_IPDs( control_ipds, cmph5_file, idx_chunks )
 			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
-		# In splitting alignment indexes among processes, some molecules will have 
+		# In splitting alignment indexes among processes, some molecules will have
 		# alignments in going to different processes. Track these.
 		split_mols = self.track_split_molecule_alignments( idx_chunks, cmph5_file )
 
@@ -309,12 +309,12 @@ class SmalrRunner():
 																	   idx,                                 \
 																	   split_mols))
 				logging.debug("Done (%s)." % chunk_id)
-		
+
 		# Add a 'poison pill' for each consumer
 		for i in xrange(self.Config.opts.procs):
 			tasks.put(None)
 		tasks.join()
-		
+
 		# Start printing results
 		parallel_results = []
 		while num_jobs:
@@ -342,7 +342,7 @@ class SmalrRunner():
 		logging.info("%s - Combining the %s separate ipdArray dictionaries..." % (self.Config.opts.contig_id, len(chunk_ipdArrays)))
 		control_ipds    = parse_mol_aligns.combine_chunk_ipdArrays( chunk_ipdArrays, self.ref_size )
 		logging.debug("%s - Done." % self.Config.opts.contig_id)
-			
+
 		##############
 		# Native
 		##############
@@ -384,7 +384,7 @@ class SmalrRunner():
 
 		if os.path.exists(self.Config.opts.out):
 			logging.info("Sorting output by strand/position...")
-			sort_CMD = "sort -t$'\\t' -nk2 %s > sorting.tmp" % self.Config.opts.out
+			sort_CMD = "sort -t'\t' -nk2 %s > sorting.tmp" % self.Config.opts.out
 			p         = subprocess.Popen(sort_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			stdOutErr = p.communicate()
 			sts       = p.returncode
