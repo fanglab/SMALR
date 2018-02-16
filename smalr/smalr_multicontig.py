@@ -2,6 +2,7 @@ import os,sys,shutil
 import optparse
 import logging
 from pbcore.io.align.CmpH5IO import *
+from pbcore.io import openIndexedAlignmentFile
 from itertools import groupby
 from smalr import SmalrRunner
 import SmalrConfig
@@ -18,7 +19,8 @@ class Smalr_multicontig_runner:
 		"""
 		Pull out the list of contigs in the h5 file.
 		"""
-		reader  = CmpH5Reader(cmph5)
+		# reader  = CmpH5Reader(cmph5)
+		reader  = openIndexedAlignmentFile(cmph5, self.Config.ref)
 		contigs = set(map(lambda x: (x[3], x[2]), reader.referenceInfoTable))
 		return contigs
 

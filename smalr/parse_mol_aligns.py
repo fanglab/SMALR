@@ -5,6 +5,8 @@ import numpy as np
 import math
 from collections import defaultdict,Counter
 from pbcore.io.align.CmpH5IO import *
+from pbcore.io import openIndexedAlignmentFile
+import pysam
 import logging
 import subprocess
 import random
@@ -24,12 +26,14 @@ class ipd_entry:
 		self.subread = tup[5]
 
 class molecule:
-	def __init__( self, alignments, prefix, leftAnchor, rightAnchor, contig_id, sites_pos, sites_neg ):
+	def __init__( self, alignments, prefix, leftAnchor, rightAnchor, contig_id, sites_pos, sites_neg, cmph5, opts ):
 		"""
 		"""
 		self.leftAnchor       = leftAnchor
 		self.rightAnchor      = rightAnchor
 		self.contig           = contig_id
+		self.cmph5            = cmph5
+		self.opts             = opts
 		self.mapped           = False
 		self.in_fastq         = False
 		self.to_del           = False
@@ -42,13 +46,39 @@ class molecule:
 		# self.subread_normalize(  )
 
 	def load_entries( self, alignments, sites_pos, sites_neg ):
-		self.zmw_id        = "%s_%s" % (alignments[0].HoleNumber, alignments[0].MovieID)
+		
+		def get_fps(align_fn):
+			"""
+			For *.cmp.h5 files, frame rate (fps) is include in each alignment.
+			For *.bam files, the frame rate is encoded in the file header (FRAMERATEHZ)
+			"""
+			if self.opts.align_ftype=="cmp":
+				# Read frame rate directly from a cmp.h5 alignment
+				reader    = CmpH5Reader(align_fn)
+				alignment = reader[0]
+				fps       = alignment.movieInfo[2]
+			
+			elif self.opts.align_ftype=="bam":
+				# Isolate description (DS) from read group (RG) in BAM header
+				bam     = pysam.AlignmentFile(align_fn, "rb")
+				h       = bam.header
+				rg_ds_l = h.as_dict()["RG"][0]["DS"].split(";")
+				rg_ds_d = dict([ (x.split("=")[0], x.split("=")[1]) for x in rg_ds_l])
+				fps     = float(rg_ds_d["FRAMERATEHZ"])
+
+			return fps
+
+		self.zmw_id        = "%s_%s" % (alignments[0].HoleNumber, alignments[0].movieName)
 		self.entries       = {}
 		self.subread_means = {}
 		for subread_id,alignment in enumerate(alignments):
-			fps             = alignment.movieInfo[2]
+			fps             = get_fps(self.cmph5)
 			self.refName    = alignment.referenceInfo[3]
-			self.mol_id     = alignment.MoleculeID
+			
+			if self.opts.useZMW:
+				self.mol_id = "%s_%s" % (alignment.HoleNumber, alignment.movieName)
+			else:
+				self.mol_id = alignment.MoleculeID
 			if alignment.isForwardStrand:
 				self.strand = 0
 			else:
@@ -59,8 +89,12 @@ class molecule:
 			ref_pos    = list(alignment.referencePositions())
 			IPD        = list(alignment.IPD())
 
-			align_min_pos = min(alignment.rStart, alignment.rEnd)
-			align_max_pos = max(alignment.rStart, alignment.rEnd)
+			if self.opts.align_ftype=="cmp":
+				align_min_pos = min(alignment.rStart, alignment.rEnd)
+				align_max_pos = max(alignment.rStart, alignment.rEnd)
+			elif self.opts.align_ftype=="bam":
+				align_min_pos = min(alignment.aStart, alignment.aEnd)
+				align_max_pos = max(alignment.aStart, alignment.aEnd)
 			self.sub_align_starts.append( align_min_pos )
 			self.sub_align_ends.append( align_max_pos )
 
@@ -242,13 +276,23 @@ class wga_molecules_processor:
 			self.sites_neg = read_in_motif_sites( self.sites_neg_fn  )
 
 	def __call__( self ):
-		reader = CmpH5Reader(self.cmph5)
+		# reader = CmpH5Reader(self.cmph5)
+		reader = openIndexedAlignmentFile(self.cmph5, self.opts.ref)
 
 		mol_alignments = defaultdict(list)
 		for alignment in reader[self.idx]:
-			if alignment.accuracy >= self.opts.minAcc and alignment.MapQV >= self.opts.minMapQV and len(alignment.alignmentArray()) >= self.opts.minSubreadLen:
+			
+			if self.opts.align_ftype=="cmp":
+				aln_acc = alignment.accuracy
+				aln_len = len(alignment.alignmentArray())
+			elif self.opts.align_ftype=="bam":
+				aln_features = dict(alignment.peer.tags)
+				aln_acc      = aln_features["rq"]
+				aln_len      = len(aln_features["ip"])
+			
+			if aln_acc >= self.opts.minAcc and aln_len >= self.opts.minSubreadLen:
 				if self.opts.useZMW:
-					mol_id = "%s_%s" % (alignment.HoleNumber, alignment.MovieID)
+					mol_id = "%s_%s" % (alignment.HoleNumber, alignment.movieName)
 				else:
 					mol_id = alignment.MoleculeID
 				mol_alignments[mol_id].append(alignment)
@@ -260,7 +304,7 @@ class wga_molecules_processor:
 			if i%incr==0:
 				logging.info("...chunk %s - %s/%s (%.1f%%) alignments processed..." % (self.chunk_id, i, len(mol_alignments.keys()), 100*float(i)/len(mol_alignments.keys())))
 			
-			mol = molecule( alignments, self.prefix, self.leftAnchor, self.rightAnchor, self.contig_id, self.sites_pos, self.sites_neg )
+			mol = molecule( alignments, self.prefix, self.leftAnchor, self.rightAnchor, self.contig_id, self.sites_pos, self.sites_neg, self.cmph5, self.opts )
 			if self.opts.useZMW:
 				# Replace the bad moleculeID with the good ZMW ID, formatted: <zmwID>_<movieID>
 				mol.mol_id = mol_id
@@ -355,7 +399,8 @@ class native_molecules_processor:
 			self.sites_neg = read_in_motif_sites( self.sites_neg_fn  )
 
 	def __call__( self ):
-		reader = CmpH5Reader(self.cmph5)
+		# reader = CmpH5Reader(self.cmph5)
+		reader = openIndexedAlignmentFile(self.cmph5, self.opts.ref)
 
 		self.chunk_output_fn = "%s_%s.tmp" % (self.out, self.chunk_id)
 		self.var_chunk_fn    = "vars_%s.tmp" % self.chunk_id
@@ -364,9 +409,18 @@ class native_molecules_processor:
 
 		mol_alignments = defaultdict(list)
 		for i,alignment in enumerate(reader[self.idx]):
-			if alignment.accuracy >= self.opts.minAcc and alignment.MapQV >= self.opts.minMapQV and len(alignment.alignmentArray()) >= self.opts.minSubreadLen:
+			
+			if self.opts.align_ftype=="cmp":
+				aln_acc = alignment.accuracy
+				aln_len = len(alignment.alignmentArray())
+			elif self.opts.align_ftype=="bam":
+				aln_features = dict(alignment.peer.tags)
+				aln_acc      = aln_features["rq"]
+				aln_len      = len(aln_features["ip"])
+			
+			if aln_acc >= self.opts.minAcc and aln_len >= self.opts.minSubreadLen:
 				if self.opts.useZMW:
-					mol_id = "%s_%s" % (alignment.HoleNumber, alignment.MovieID)
+					mol_id = "%s_%s" % (alignment.HoleNumber, alignment.movieName)
 				else:
 					mol_id = alignment.MoleculeID
 				mol_alignments[mol_id].append(alignment)
@@ -377,7 +431,7 @@ class native_molecules_processor:
 			if i%incr==0:
 				logging.info("...chunk %s - processing molecules: %s/%s (%.1f%%)" % (self.chunk_id, i, len(mol_alignments.keys()), 100*i/len(mol_alignments.keys())))
 			
-			mol = molecule( alignments, self.prefix, self.leftAnchor, self.rightAnchor, self.contig_id, self.sites_pos, self.sites_neg )
+			mol = molecule( alignments, self.prefix, self.leftAnchor, self.rightAnchor, self.contig_id, self.sites_pos, self.sites_neg, self.cmph5, self.opts )
 			if self.opts.useZMW:
 				# Replace the bad moleculeID with the good ZMW ID, formatted: <zmwID>_<movieID>
 				mol.mol_id = mol_id

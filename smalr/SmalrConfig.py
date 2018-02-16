@@ -1,6 +1,7 @@
 import os,sys
 import optparse
 import logging
+import subprocess
 
 class RunnerConfig:
 	def __init__( self ):
@@ -60,12 +61,12 @@ class RunnerConfig:
 		parser.add_option( "--SMsn", action="store_true", help="Use short-library, single-nucleotide detection protocol. [False]" )
 		parser.add_option( "--SMp", action="store_true", help="Use long-library epigenetic phasing protocol (pool IPDs from each subread). [False]" )
 		parser.add_option( "--procs", type="int", help="Number of processors to use [4]" )
-		parser.add_option( "--align", action="store_true", help="Align native reads to reference to avoid real SNP positions. Only use when expecting sequence heterogeneity in sample (i.e. mtDNA). [False]" )
+		parser.add_option( "--align", action="store_true", help="[DEPRECATED; not supported for BAM input] Align native reads to reference to avoid real SNP positions. Only use when expecting sequence heterogeneity in sample (i.e. mtDNA). [False]" )
 		parser.add_option( "--upstreamSkip", type="int", help="Number of bases 5' of a CCS-detected, molecule-level SNP to skip in analysis (only when using --align) [10]" )
 		parser.add_option( "--downstreamSkip", type="int", help="Number of bases 3' of a CCS-detected, molecule-level SNP to skip in analysis (only when using --align) [10]" )
 		parser.add_option( "--minSubreadLen", type="int", help="Minimum length of a subread to analyze [100]" )
 		parser.add_option( "--minAcc", type="float", help="Minimum accuracy of a subread to analyze [0.8]" )
-		parser.add_option( "--minMapQV", type="int", help="Minimum mapQV of a subread to analyze [240]" )
+		# parser.add_option( "--minMapQV", type="int", help="Minimum mapQV of a subread to analyze [240]" ) #DEPRECATED
 		parser.add_option( "--natProcs", type="int", help="Number of processors to use for native molecule analysis [same as procs]" )
 		parser.add_option( "--leftAnchor", type="int", help="Number of left bp to exclude around subread-level alignment errors [1]" )
 		parser.add_option( "--rightAnchor", type="int", help="Number of right bp to exclude around subread-level alignment errors [1]" )
@@ -97,6 +98,10 @@ class RunnerConfig:
 		if len(args) == 0:
 			print usage
 			sys.exit()
+
+
+		if self.opts.align:
+			raise Exception("the --align option no longer supported. This has no effect unless your data has significant SNP heterogeneity.")
 
 		# Shift the --mod_pos value into Pythonic 0-based indexing
 		self.opts.mod_pos -= 1
@@ -138,18 +143,57 @@ class RunnerConfig:
 		if self.opts.nat_aligns_flat != None and not os.path.exists(self.opts.nat_aligns_flat):
 			raise Exception("%s file not found!" % self.opts.nat_aligns_flat)
 
+		def check_input_fype(expected_ftype, fname):
+			if expected_ftype=="alignments":
+				valid_exts  = [".cmp.h5", ".bam"]
+				ext_matches = [fname.endswith(x) for x in valid_exts]
+				if not any(ext_matches):
+					raise Exception("Looking for *.cmp.h5 or *.bam file, found %s" % fname)
+				elif fname.endswith(".cmp.h5"):
+					self.opts.align_ftype = "cmp"
+				elif fname.endswith(".bam"):
+					self.opts.align_ftype = "bam"
+			
+			if expected_ftype=="fasta":
+				valid_exts  = ["fa", "fasta", "fsa"]
+				ext_matches = [fname.endswith(x) for x in valid_exts]
+				if not any(ext_matches):
+					raise Exception("Looking for valid fasta file (*.fasta, *.fa, or *.fsa), found %s" % fname)
+
 		contig_dir = os.getcwd()
 		orig_dir   = os.path.dirname(self.input_file)
 		os.chdir(orig_dir)
 		for line in open(self.input_file).xreadlines():
 			if line.split(":")[0].strip() == "fastq":
 				self.fastq        = os.path.abspath(line.split(":")[1].strip())
+			
 			elif line.split(":")[0].strip() == "ref":
 				self.ref          = os.path.abspath(line.split(":")[1].strip())
+				self.opts.ref     = self.ref
+				check_input_fype("fasta", self.ref)
+			
 			elif line.split(":")[0].strip() == "wga_cmph5":
 				self.wga_cmph5    = os.path.abspath(line.split(":")[1].strip())
+				check_input_fype("alignments", self.wga_cmph5)
+			
 			elif line.split(":")[0].strip() == "native_cmph5":
 				self.native_cmph5 = os.path.abspath(line.split(":")[1].strip())
+				check_input_fype("alignments", self.native_cmph5)
+			
 			else:
 				raise Exception("Unexpected field in the input file!\n%s" % line)
+
+		if self.opts.align_ftype=="bam":
+			self.opts.useZMW = True
+
+		if not os.path.exists("%s.fai" % self.opts.ref):
+			faidx_CMD = "samtools faidx %s" % self.opts.ref
+			p         = subprocess.Popen(faidx_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			stdOutErr = p.communicate()
+			sts       = p.returncode
+			if sts != 0:
+				for entry in stdOutErr:
+					print entry
+				raise Exception("Failed command: %s" % CMD)
+
 		os.chdir(contig_dir)

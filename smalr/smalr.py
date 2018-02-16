@@ -8,6 +8,7 @@ from collections import defaultdict, Counter
 import math
 import pickle
 from pbcore.io.align.CmpH5IO import *
+from pbcore.io import openIndexedAlignmentFile
 import multiprocessing
 import glob
 import random
@@ -152,9 +153,11 @@ class SmalrRunner():
 		"""
 		Pull out the movie names and IDs from the h5 file and return a dict mapping them.
 		"""
+		
 		movie_name_ID_map = dict(zip(h5file["/MovieInfo/Name"].value, h5file["/MovieInfo/ID"].value))
 		for name, ID in movie_name_ID_map.iteritems():
 			logging.debug("  %s : %s" % (name, ID))
+
 		return movie_name_ID_map
 
 	def split_up_control_IPDs( self, control_ipds, cmph5_file, idx_chunks ):
@@ -164,7 +167,9 @@ class SmalrRunner():
 		reference position.
 		"""
 
-		reader                  = CmpH5Reader(cmph5_file)
+		# reader                  = CmpH5Reader(cmph5_file)
+		reader     = openIndexedAlignmentFile(cmph5_file, self.Config.ref)
+		
 		local_control_ipds      = {}
 		for chunk_id,idx_chunk in enumerate(idx_chunks):
 			idx_mins = [min(reader[idx].tStart, reader[idx].tEnd) for idx in idx_chunk]
@@ -219,12 +224,19 @@ class SmalrRunner():
 		self.sites_neg = stdOutErr[0].split("\n")[1].split(" ")[1][1:-1]
 
 	def track_split_molecule_alignments( self, idx_chunks, cmph5_file ):
-		reader     = CmpH5Reader(cmph5_file)
+		# reader     = CmpH5Reader(cmph5_file)
+		reader     = openIndexedAlignmentFile(cmph5_file, self.Config.ref)
 		chunk_mols = {}
 		for i,idx_chunk in enumerate(idx_chunks):
 			chunk_mols[i] = set()
 			for alignment in reader[idx_chunk]:
-				chunk_mols[i].add(alignment.MoleculeID)
+				
+				if self.Config.opts.useZMW:
+					mol_id = "%s_%s" % (alignment.HoleNumber, alignment.movieName)
+				else:
+					mol_id = alignment.MoleculeID
+
+				chunk_mols[i].add(mol_id)
 		reader.close()
 
 		split_mols = set()
@@ -258,8 +270,13 @@ class SmalrRunner():
 
 		# Enqueue jobs
 		logging.info("Partitioning %s into %s chunks for analysis..." % (cmph5_file, num_jobs))
-		reader         = CmpH5Reader(cmph5_file)
-		alnIDs         = [r.AlnID for r in reader if r.referenceInfo[2]==self.Config.opts.contig_id]
+		# reader         = CmpH5Reader(cmph5_file)
+		reader = openIndexedAlignmentFile(cmph5_file, self.Config.ref)
+		if self.Config.opts.align_ftype=="cmp":
+			alnIDs = [r.AlnID for r in reader if r.referenceInfo[2]==self.Config.opts.contig_id]
+		elif self.Config.opts.align_ftype=="bam":
+			alnIDs = [r.rowNumber for r in reader if r.referenceInfo[2]==self.Config.opts.contig_id]
+		
 		if len(alnIDs) <= num_jobs:
 			num_jobs = 1
 		reader.close()
@@ -334,7 +351,10 @@ class SmalrRunner():
 		# WGA
 		##############
 		prefix = "wga_"
-		wga_movie_name_ID_map = self.get_movie_name_ID_map( h5file = h5py.File(self.Config.wga_cmph5, 'r') )
+		if self.Config.opts.align:
+			wga_movie_name_ID_map = self.get_movie_name_ID_map( h5file = h5py.File(self.Config.wga_cmph5, 'r') )
+		else:
+			wga_movie_name_ID_map = None
 
 		control_ipds    = None
 		chunk_ipdArrays = self.launch_parallel_molecule_loading( self.Config.wga_cmph5, prefix, wga_movie_name_ID_map, control_ipds )
@@ -356,7 +376,10 @@ class SmalrRunner():
 			run_command( samtools_idx_CMD )
 			logging.debug("%s - Done." % self.Config.opts.contig_id)
 
-		native_movie_name_ID_map = self.get_movie_name_ID_map( h5file = h5py.File(self.Config.native_cmph5, 'r') )
+		if self.Config.opts.align:
+			native_movie_name_ID_map = self.get_movie_name_ID_map( h5file = h5py.File(self.Config.native_cmph5, 'r') )
+		else:
+			native_movie_name_ID_map = None
 
 		parallel_output_fns = self.launch_parallel_molecule_loading( self.Config.native_cmph5, prefix, native_movie_name_ID_map, control_ipds )
 
