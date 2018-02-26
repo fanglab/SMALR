@@ -20,10 +20,14 @@ class RunnerConfig:
 		The inputs_file has the following format:
 		
 		native_cmph5 : /path/to/native/aligned_reads.cmp.h5
-		fastq        : /path/to/native/CCS_reads.fastq       (optional)
+		fastq        : /path/to/native/CCS_reads.fastq       (DEPRECATED; specify NONE)
 		wga_cmph5    : /path/to/WGA/aligned_reads.cmp.h5     
 		ref          : /path/to/sample/reference.fasta
 
+		With the updated support for aligned BAM files (in addition to *.cmp.h5 files), 
+		please supply the path to the aligned BAM file using the 'native_cmph5' and 
+		'wga_cmph5' lines in the input file.
+		
 
 		SMsn: Single-molecule, single nucleotide analysis
 		Each motif site on each sequencing molecule is assessed for methylation
