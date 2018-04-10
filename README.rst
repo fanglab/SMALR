@@ -6,6 +6,9 @@ SMALR summary
         :target: https://smalr.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
+.. image:: https://img.shields.io/travis/fanglab/SMALR.svg
+        :target: https://travis-ci.org/fanglab/SMALR
+
 SMALR: a framework for single-molecule level interrogation of the methylation status of SMRT reads.
 
 The SMALR package conducts single-molecule level interrogation of the methylation status of SMRT reads. There are two protocols available for use within the pipeline, SMsn and SMp.
