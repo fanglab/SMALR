@@ -19,7 +19,7 @@ requirements = [
 	'h5py >= 2.0.1',
 	'numpy >= 1.7.1, < 1.14',
 	'cython >= 0.17',
-	'pysam >= 0.10.0',
+	'pysam >= 0.14.0',
 	'unittest2'
 	]
 
